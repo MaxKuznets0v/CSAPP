@@ -148,7 +148,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MemScan.cpp" />
-    <ClCompile Include="Multi.cpp" />
+    <ClCompile Include="Multihack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />

@@ -1,8 +1,5 @@
 #pragma once
 #include "MemScan.h"
-#include "Offets.h"
-#include <iostream>
-#include "config.h"
 
 class Multihack
 {

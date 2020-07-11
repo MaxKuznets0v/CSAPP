@@ -1,5 +1,4 @@
-#ifndef MEM_SCAN_H
-#define MEM_SCAN_H
+#pragma once
 
 #include <Windows.h>
 
@@ -35,4 +34,3 @@ void ProcessHandler::ProcWrite(DWORD procAddress, T val)
 	// Writing to process memory
 	WriteProcessMemory(hProc, (LPVOID)procAddress, &val, sizeof(T), NULL);
 }
-#endif 

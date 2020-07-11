@@ -1,5 +1,8 @@
 #include "Multihack.h"
 #include <thread>
+#include <iostream>
+#include "Offets.h"
+#include "config.h"
 
 Multihack::Multihack() : process(ProcessHandler("csgo.exe")) 
 {

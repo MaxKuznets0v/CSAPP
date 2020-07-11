@@ -18,10 +18,10 @@
     <ClCompile Include="MemScan.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Multi.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="Multihack.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
