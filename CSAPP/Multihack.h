@@ -10,13 +10,17 @@ public:
 	Multihack();
 private:
 	ProcessHandler process;
-	DWORD moduleBase;
+	uintptr_t moduleBase;
+	//HDC csgoDC;
 	// multicheat activity
 	bool active;
 	// cheats availability
 	bool enabled[cNums];
 	std::thread cheatTreads[cNums];
 	void ESP();
+	// not used in this hack
+	/*void HealthBar(uintptr_t, float);
+	void DrawBar(RECT, float);*/
 	void Bhop();
 	void RadarHack();
 	void ClientUpdate();

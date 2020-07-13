@@ -6,6 +6,7 @@
 Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 {
 	active = true;
+	//csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
 	std::thread updater([this]()
 	{
 		// updating client.dll file (in case game changes)
@@ -31,22 +32,95 @@ void Multihack::StopAll()
 
 void Multihack::ESP()
 {
-	std::cout << "ESP enabled\n";
 	ClientUpdate();
-	while (GetKeyState((int)hKeys::RADAR_HACK) & 1)
+	while (true)
 	{
-		// looping through entity list (64 since max number of players on a server is 64)
-		for (int i = 0; i < 64; ++i)
+		if (GetAsyncKeyState((int)hKeys::ESP) & 1)
 		{
-			DWORD entity = process.ProcRead<DWORD>(moduleBase + offsets::dwEntityList + i * 0x10);
-
+			enabled[hID::ESP] = !enabled[hID::ESP];
+			if (enabled[hID::ESP])
+				std::cout << "ESP enabled\n";
+			else
+				std::cout << "ESP disabled\n";
 		}
-		Sleep(50);
-	}
+		if (enabled[hID::ESP])
+		{
+			uintptr_t glowManager = process.ProcRead<uintptr_t>(moduleBase + offsets::esp::dwGlowObjectManager);
 
-	enabled[hID::ESP] = false;
-	std::cout << "ESP disabled\n";
+			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + offsets::esp::dwLocalPlayer);
+			int team = process.ProcRead<int>(lPlayer + offsets::esp::m_iTeamNum);
+			
+			// looping through entity list (64 since max number of players on a server is 64)
+			for (int i = 1; i < 64; ++i)
+			{
+				uintptr_t entity = process.ProcRead<uintptr_t>(moduleBase + offsets::dwEntityList + i * 0x10);
+				int health = process.ProcRead<int>(entity + offsets::esp::m_iHealth);
+				int entityTeam = process.ProcRead<int>(entity + offsets::esp::m_iTeamNum);
+				// spectator
+				int isDormaint = process.ProcRead<int>(entity + offsets::esp::m_bDormant);
+
+				// skip if entity is not found or a spectator or dead
+				if (entity && !isDormaint && health > 0 && health < 101)
+				{
+					int glowIndex = process.ProcRead<int>(entity + offsets::esp::m_iGlowIndex);
+					Glow glowStat = process.ProcRead<Glow>(glowManager + (glowIndex * 0x38));
+					if (entityTeam == team)
+					{
+						glowStat.blue = 1;
+						glowStat.green = 0.5;
+					}
+					else
+					{
+						bool defusing = process.ProcRead<bool>(entity + offsets::esp::m_bIsDefusing);
+						if (defusing)
+						{
+							// defusing player will be white
+							glowStat.red = 1;
+							glowStat.green = 1;
+							glowStat.blue = 1;
+						}
+						else
+						{
+							// glow color changes accordigly to player's health
+							glowStat.red = health * -0.01 + 1;
+							glowStat.green = health * 0.01;
+						}
+					}
+
+					glowStat.alpha = 0.8;
+					//glowStat.glowStyle = 1;
+					glowStat.renderOccluded = true;
+					glowStat.renderNonOccluded = false;
+					process.ProcWrite<Glow>(glowManager + (glowIndex * 0x38), glowStat);
+				}
+			}
+		}
+		Sleep(1);
+	}
 }
+
+//void Multihack::HealthBar(uintptr_t entity, float health)
+//{
+//	// getting veiw matrix for view transformation
+//	view_matrix_t veiwMat = process.ProcRead<view_matrix_t>(moduleBase + offsets::esp::dwViewMatrix);
+//	// getting player position
+//	Vector3 pos = process.ProcRead<Vector3>(entity + offsets::esp::m_vecOrigin);
+//	Vector3 head{ pos.x, pos.y, pos.z + 75.f };
+//	// transforming 3D global coordinates into 2D screen coordinates
+//	Vector3 screenpos = WorldToScreen(pos, veiwMat);
+//	Vector3 screenhead = WorldToScreen(head, veiwMat);
+//	float height = screenhead.y - screenpos.y;
+//	float width = height / 2.4f;;
+//	RECT bar{ screenhead.x - width / 2 - 10, screenhead.y, screenpos.x - width / 2 - 5, screenpos.y };
+//	DrawBar(bar, health);
+//}
+//
+//void Multihack::DrawBar(RECT bar, float health)
+//{
+//	HBRUSH brush = CreateSolidBrush(RGB(255, 0, 0));
+//	FillRect(csgoDC, &bar, brush);
+//	DeleteObject(brush);
+//}
 
 void Multihack::Bhop()
 {
@@ -111,7 +185,7 @@ void Multihack::RadarHack()
 			// looping through entity list (64 since max number of players on a server is 64)
 			for (int i = 0; i < 64; ++i)
 			{
-				DWORD entity = process.ProcRead<DWORD>(moduleBase + offsets::dwEntityList + i * 0x10);
+				uintptr_t entity = process.ProcRead<uintptr_t>(moduleBase + offsets::dwEntityList + i * 0x10);
 				if (entity)
 					process.ProcWrite(entity + offsets::radar::m_bSpotted, true);
 			}

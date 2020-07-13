@@ -70,7 +70,7 @@ ProcessHandler::~ProcessHandler()
 	CloseHandle(hProc);
 }
 
-DWORD ProcessHandler::GetProcID() const
+uintptr_t ProcessHandler::GetProcID() const
 {
 	// returning process ID
 	return procID;

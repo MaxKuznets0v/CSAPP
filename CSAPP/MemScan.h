@@ -7,20 +7,20 @@ class ProcessHandler
 public:
 	ProcessHandler(const char*);
 	~ProcessHandler();
-	DWORD GetProcID() const;
+	uintptr_t GetProcID() const;
 	HANDLE GetHandle() const;
 	uintptr_t GetModule(const char*);
 	template <typename T>
-	T ProcRead(DWORD);
+	T ProcRead(uintptr_t);
 	template <typename T>
-	void ProcWrite(DWORD, T);
+	void ProcWrite(uintptr_t, T);
 private:
 	HANDLE hProc;
-	DWORD procID;
+	uintptr_t procID;
 };
 
 template <typename T>
-T ProcessHandler::ProcRead(DWORD procAddress)
+T ProcessHandler::ProcRead(uintptr_t procAddress)
 {
 	// Reading from process memory
 	T buff;
@@ -29,7 +29,7 @@ T ProcessHandler::ProcRead(DWORD procAddress)
 }
 
 template <typename T>
-void ProcessHandler::ProcWrite(DWORD procAddress, T val)
+void ProcessHandler::ProcWrite(uintptr_t procAddress, T val)
 {
 	// Writing to process memory
 	WriteProcessMemory(hProc, (LPVOID)procAddress, &val, sizeof(T), NULL);
