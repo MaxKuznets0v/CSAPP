@@ -11,7 +11,7 @@ public:
 	HANDLE GetHandle() const;
 	uintptr_t GetModule(const char*);
 	template <typename T>
-	T ProcRead(uintptr_t);
+	T ProcRead(uintptr_t) const;
 	template <typename T>
 	void ProcWrite(uintptr_t, T);
 private:
@@ -20,7 +20,7 @@ private:
 };
 
 template <typename T>
-T ProcessHandler::ProcRead(uintptr_t procAddress)
+T ProcessHandler::ProcRead(uintptr_t procAddress) const
 {
 	// Reading from process memory
 	T buff;

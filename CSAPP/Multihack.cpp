@@ -47,17 +47,17 @@ void Multihack::ESP()
 		{
 			uintptr_t glowManager = process.ProcRead<uintptr_t>(moduleBase + offsets::esp::dwGlowObjectManager);
 
-			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + offsets::esp::dwLocalPlayer);
-			int team = process.ProcRead<int>(lPlayer + offsets::esp::m_iTeamNum);
+			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + offsets::dwLocalPlayer);
+			int team = process.ProcRead<int>(lPlayer + offsets::m_iTeamNum);
 			
 			// looping through entity list (64 since max number of players on a server is 64)
 			for (int i = 1; i < 64; ++i)
 			{
 				uintptr_t entity = process.ProcRead<uintptr_t>(moduleBase + offsets::dwEntityList + i * 0x10);
-				int health = process.ProcRead<int>(entity + offsets::esp::m_iHealth);
-				int entityTeam = process.ProcRead<int>(entity + offsets::esp::m_iTeamNum);
+				int health = process.ProcRead<int>(entity + offsets::m_iHealth);
+				int entityTeam = process.ProcRead<int>(entity + offsets::m_iTeamNum);
 				// spectator
-				int isDormaint = process.ProcRead<int>(entity + offsets::esp::m_bDormant);
+				int isDormaint = process.ProcRead<int>(entity + offsets::m_bDormant);
 
 				// skip if entity is not found or a spectator or dead
 				if (entity && !isDormaint && health > 0 && health < 101)
@@ -98,29 +98,6 @@ void Multihack::ESP()
 		Sleep(1);
 	}
 }
-
-//void Multihack::HealthBar(uintptr_t entity, float health)
-//{
-//	// getting veiw matrix for view transformation
-//	view_matrix_t veiwMat = process.ProcRead<view_matrix_t>(moduleBase + offsets::esp::dwViewMatrix);
-//	// getting player position
-//	Vector3 pos = process.ProcRead<Vector3>(entity + offsets::esp::m_vecOrigin);
-//	Vector3 head{ pos.x, pos.y, pos.z + 75.f };
-//	// transforming 3D global coordinates into 2D screen coordinates
-//	Vector3 screenpos = WorldToScreen(pos, veiwMat);
-//	Vector3 screenhead = WorldToScreen(head, veiwMat);
-//	float height = screenhead.y - screenpos.y;
-//	float width = height / 2.4f;;
-//	RECT bar{ screenhead.x - width / 2 - 10, screenhead.y, screenpos.x - width / 2 - 5, screenpos.y };
-//	DrawBar(bar, health);
-//}
-//
-//void Multihack::DrawBar(RECT bar, float health)
-//{
-//	HBRUSH brush = CreateSolidBrush(RGB(255, 0, 0));
-//	FillRect(csgoDC, &bar, brush);
-//	DeleteObject(brush);
-//}
 
 void Multihack::Bhop()
 {
@@ -194,6 +171,56 @@ void Multihack::RadarHack()
 	}
 }
 
+void Multihack::AimBot()
+{
+	uintptr_t enemyToAim;
+	std::thread findClosest([this, &enemyToAim]() 
+	{
+		while (true)
+		{
+			enemyToAim = ClosestEnemy();
+			Sleep(1);
+		}
+	});
+	findClosest.detach();
+
+
+}
+
+uintptr_t Multihack::ClosestEnemy() const
+{
+	uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + offsets::dwLocalPlayer);
+	int team = process.ProcRead<int>(lPlayer + offsets::m_iTeamNum);
+	uintptr_t closest;
+
+	for (int i = 1; i < 64; ++i)
+	{
+		uintptr_t entity = process.ProcRead<uintptr_t>(moduleBase + offsets::dwEntityList + i * 0x10);
+		int health = process.ProcRead<int>(entity + offsets::m_iHealth);
+		int entityTeam = process.ProcRead<int>(entity + offsets::m_iTeamNum);
+		// spectator
+		int isDormaint = process.ProcRead<int>(entity + offsets::m_bDormant);
+		
+		double lowestDist = max(screenX, screenY);
+		if (entity && !isDormaint && health > 0 && health < 101)
+		{
+			// number 8 states for head bone id
+			boneMatrix_t boneHead = process.ProcRead<boneMatrix_t>(entity + offsets::aimBot::m_dwBoneMatrix + sizeof(boneHead) * 8);
+			view_matrix_t mat = process.ProcRead<view_matrix_t>(moduleBase + offsets::dwViewMatrix);
+			Vector3 head{ boneHead.x, boneHead.y, boneHead.z };
+			head = WorldToScreen(head, mat);
+			double delta = sqrt(pow(screenX / 2 - head.x, 2) + pow(screenY / 2 - head.y, 2));
+
+			if (delta < lowestDist)
+			{
+				lowestDist = delta;
+				closest = entity;
+			}
+		}
+	}
+	return closest;
+}
+
 void Multihack::ClientUpdate()
 {
 	moduleBase = process.GetModule("client.dll");
@@ -224,3 +251,26 @@ void Multihack::Options()
 		Sleep(1000);
 	}
 }
+
+//void Multihack::HealthBar(uintptr_t entity, float health)
+//{
+//	// getting veiw matrix for view transformation
+//	view_matrix_t veiwMat = process.ProcRead<view_matrix_t>(moduleBase + offsets::esp::dwViewMatrix);
+//	// getting player position
+//	Vector3 pos = process.ProcRead<Vector3>(entity + offsets::esp::m_vecOrigin);
+//	Vector3 head{ pos.x, pos.y, pos.z + 75.f };
+//	// transforming 3D global coordinates into 2D screen coordinates
+//	Vector3 screenpos = WorldToScreen(pos, veiwMat);
+//	Vector3 screenhead = WorldToScreen(head, veiwMat);
+//	float height = screenhead.y - screenpos.y;
+//	float width = height / 2.4f;;
+//	RECT bar{ screenhead.x - width / 2 - 10, screenhead.y, screenpos.x - width / 2 - 5, screenpos.y };
+//	DrawBar(bar, health);
+//}
+//
+//void Multihack::DrawBar(RECT bar, float health)
+//{
+//	HBRUSH brush = CreateSolidBrush(RGB(255, 0, 0));
+//	FillRect(csgoDC, &bar, brush);
+//	DeleteObject(brush);
+//}

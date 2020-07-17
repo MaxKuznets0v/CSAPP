@@ -5,6 +5,12 @@
 namespace offsets
 {
 	uintptr_t dwEntityList = 0x4D523EC;
+	uintptr_t m_vecOrigin = 0x138;
+	uintptr_t dwViewMatrix = 0x4D43D34;
+	uintptr_t m_bDormant = 0xED;
+	uintptr_t dwLocalPlayer = 0xD3DBEC;
+	uintptr_t m_iHealth = 0x100;
+	uintptr_t m_iTeamNum = 0xF4;
 	namespace bunnyHop
 	{
 		uintptr_t m_vecVelocity = 0x114; // not used
@@ -20,13 +26,16 @@ namespace offsets
 	{
 		uintptr_t m_iGlowIndex = 0xA438;
 		uintptr_t dwGlowObjectManager = 0x529A248;
-		uintptr_t dwLocalPlayer = 0xD3DBEC;
-		uintptr_t m_iHealth = 0x100;
-		uintptr_t m_iTeamNum = 0xF4;
-		uintptr_t m_bDormant = 0xED;
 		uintptr_t m_bIsDefusing = 0x3930;
-		// next two are nor used
-		uintptr_t m_vecOrigin = 0x138;
-		uintptr_t dwViewMatrix = 0x4D43D34;
+	}
+	namespace aimBot
+	{
+		uintptr_t m_dwBoneMatrix = 0x26A8;
+	}
+	namespace noRecoil
+	{
+		uintptr_t m_aimPunchAngle = 0x302C;
+		uintptr_t m_thirdPersonViewAngles = 0x31D8;
+
 	}
 }

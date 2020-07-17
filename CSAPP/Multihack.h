@@ -23,6 +23,8 @@ private:
 	void DrawBar(RECT, float);*/
 	void Bhop();
 	void RadarHack();
+	void AimBot();
+	uintptr_t ClosestEnemy() const;
 	void ClientUpdate();
 	void Options();
 	void StopAll();
