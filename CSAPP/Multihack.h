@@ -25,6 +25,7 @@ private:
 	void RadarHack();
 	void AimBot();
 	uintptr_t ClosestEnemy() const;
+	Vector3 getAngles(Vector3, Vector3) const;
 	void ClientUpdate();
 	void Options();
 	void StopAll();

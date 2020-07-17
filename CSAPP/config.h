@@ -1,7 +1,10 @@
 #pragma once
+#include <cmath> 
 
 const int screenX = GetSystemMetrics(SM_CXSCREEN);
 const int screenY = GetSystemMetrics(SM_CYSCREEN);
+#define M_PI 3.14159265358979323846
+
 
 const int cNums = 4;
 // hotkeys for each hack
@@ -46,6 +49,22 @@ struct Glow
 struct Vector3
 {
 	float x, y, z;
+	Vector3 operator-(Vector3 another) const
+	{
+		return { x - another.x, y - another.y, z - another.z };
+	}
+	float len3() const
+	{
+		return sqrt(x * x + y * y + z * z);
+	}
+	float len2() const
+	{
+		return sqrt(x * x + y * y);
+	}
+	Vector3 operator*(float cons) const
+	{
+		return { x * cons, y * cons, z * cons };
+	}
 };
 
 struct view_matrix_t {

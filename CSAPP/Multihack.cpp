@@ -2,7 +2,6 @@
 #include <iostream>
 #include "Offets.h"
 
-
 Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 {
 	active = true;
@@ -173,6 +172,7 @@ void Multihack::RadarHack()
 
 void Multihack::AimBot()
 {
+	ClientUpdate();
 	uintptr_t enemyToAim;
 	std::thread findClosest([this, &enemyToAim]() 
 	{
@@ -184,7 +184,33 @@ void Multihack::AimBot()
 	});
 	findClosest.detach();
 
+	while (true)
+	{
+		if (GetAsyncKeyState((int)hKeys::AIMBOT) & 1)
+		{
+			enabled[hID::AIMBOT] = !enabled[hID::AIMBOT];
+			if (enabled[hID::AIMBOT])
+				std::cout << "Aimbot enabled\n";
+			else
+				std::cout << "Aimbot disabled\n";
+		}
+		if (enabled[hID::AIMBOT])
+		{
+			bool spotted = process.ProcRead<bool>(enemyToAim + offsets::radar::m_bSpotted);
 
+			if (spotted)
+			{
+				uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + offsets::dwLocalPlayer);
+				Vector3 playerPos = process.ProcRead<Vector3>(lPlayer + offsets::aimBot::m_vecOrigin);
+				Vector3 entPos = process.ProcRead<Vector3>(enemyToAim + offsets::aimBot::m_vecOrigin);
+				Vector3 angles = getAngles(playerPos, entPos);
+
+				Vector3 punchAngles = process.ProcRead<Vector3>(enemyToAim + offsets::noRecoil::m_aimPunchAngle);
+				angles = angles - punchAngles * 2;
+				process.ProcWrite<Vector3>(moduleBase + offsets::aimBot::dwClientState_ViewAngles, angles);
+			}
+		}
+	}
 }
 
 uintptr_t Multihack::ClosestEnemy() const
@@ -219,6 +245,23 @@ uintptr_t Multihack::ClosestEnemy() const
 		}
 	}
 	return closest;
+}
+
+Vector3 Multihack::getAngles(Vector3 cur, Vector3 dest) const
+{
+	Vector3 angles;
+
+	Vector3 delta = cur - dest;
+	double len = delta.len2();
+
+	// convert from radian to angles multiplying by 180 / PI
+	angles.y = atan(delta.y / delta.x) * 180 / M_PI;
+	angles.x = acos(delta.z / len) * 180 / M_PI;
+
+	if (angles.x >= 0)
+		angles.y += 180;
+
+	return angles;
 }
 
 void Multihack::ClientUpdate()

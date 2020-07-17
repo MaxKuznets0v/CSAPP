@@ -5,7 +5,6 @@
 namespace offsets
 {
 	uintptr_t dwEntityList = 0x4D523EC;
-	uintptr_t m_vecOrigin = 0x138;
 	uintptr_t dwViewMatrix = 0x4D43D34;
 	uintptr_t m_bDormant = 0xED;
 	uintptr_t dwLocalPlayer = 0xD3DBEC;
@@ -31,11 +30,12 @@ namespace offsets
 	namespace aimBot
 	{
 		uintptr_t m_dwBoneMatrix = 0x26A8;
+		uintptr_t m_vecOrigin = 0x138;
+		uintptr_t dwClientState_ViewAngles = 0x4D88;
 	}
 	namespace noRecoil
 	{
 		uintptr_t m_aimPunchAngle = 0x302C;
-		uintptr_t m_thirdPersonViewAngles = 0x31D8;
-
+		//uintptr_t m_thirdPersonViewAngles = 0x31D8;
 	}
 }
