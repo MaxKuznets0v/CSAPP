@@ -24,9 +24,10 @@ private:
 	void Bhop();
 	void RadarHack();
 	void AimBot();
-	uintptr_t ClosestEnemy() const;
+	uintptr_t ClosestEnemy();
 	Vector3 getAngles(Vector3, Vector3) const;
 	void ClientUpdate();
 	void Options();
 	void StopAll();
+	void DrawLine(float StartX, float StartY, float EndX, float End);
 };

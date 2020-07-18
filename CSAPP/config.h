@@ -1,8 +1,9 @@
 #pragma once
 #include <cmath> 
+#include <exception>
 
-const int screenX = GetSystemMetrics(SM_CXSCREEN);
-const int screenY = GetSystemMetrics(SM_CYSCREEN);
+const int screenX = /*GetSystemMetrics(SM_CXSCREEN)*/1920;
+const int screenY = /*GetSystemMetrics(SM_CYSCREEN)*/1080;
 #define M_PI 3.14159265358979323846
 
 
@@ -49,9 +50,17 @@ struct Glow
 struct Vector3
 {
 	float x, y, z;
+	bool operator==(Vector3 another) const
+	{
+		return x == another.x && y == another.y && z == another.z;
+	}
 	Vector3 operator-(Vector3 another) const
 	{
 		return { x - another.x, y - another.y, z - another.z };
+	}
+	Vector3 operator+(Vector3 another) const
+	{
+		return { x + another.x, y + another.y, z + another.z };
 	}
 	float len3() const
 	{
@@ -65,35 +74,39 @@ struct Vector3
 	{
 		return { x * cons, y * cons, z * cons };
 	}
+	Vector3 operator/(float cons) const
+	{
+		if (cons)
+			return { x / cons, y / cons, z / cons };
+		else
+			throw std::exception("Divided by zero!\n");
+	}
 };
 
-struct view_matrix_t {
-	float* operator[](int index) 
-	{
-		return matrix[index];
-	}
-
-	float matrix[4][4];
+struct view_matrix_t 
+{
+	float matrix[16];
 };
 
 static Vector3 WorldToScreen(const Vector3 pos, view_matrix_t matrix) 
 {
-	float _x = matrix[0][0] * pos.x + matrix[0][1] * pos.y + matrix[0][2] * pos.z + matrix[0][3];
-	float _y = matrix[1][0] * pos.x + matrix[1][1] * pos.y + matrix[1][2] * pos.z + matrix[1][3];
+	Vector3 res;
+	float _x = matrix.matrix[0] * pos.x + matrix.matrix[1] * pos.y + matrix.matrix[2] * pos.z + matrix.matrix[3];
+	float _y = matrix.matrix[4] * pos.x + matrix.matrix[5] * pos.y + matrix.matrix[6] * pos.z + matrix.matrix[7];
+	res.z = matrix.matrix[12] * pos.x + matrix.matrix[13] * pos.y + matrix.matrix[14] * pos.z + matrix.matrix[15];
 
-	float w = matrix[3][0] * pos.x + matrix[3][1] * pos.y + matrix[3][2] * pos.z + matrix[3][3];
+	if (res.z < 0.1f)
+		return { -1, -1, -1 };
+	_x /= res.z;
+	_y /= res.z;
 
-	float inv_w = 1.f / w;
-	_x *= inv_w;
-	_y *= inv_w;
+	res.x = screenX * .5f;
+	res.y = screenY * .5f;
 
-	float x = screenX * .5f;
-	float y = screenY * .5f;
+	res.x += 0.5f * _x * screenX + 0.5f;
+	res.y -= 0.5f * _y * screenY + 0.5f;
 
-	x += 0.5f * _x * screenX + 0.5f;
-	y -= 0.5f * _y * screenY + 0.5f;
-
-	return { x,y,w };
+	return res;
 }
 
 struct boneMatrix_t 
