@@ -209,12 +209,8 @@ void Multihack::AimBot()
 		}
 		if (enabled[hID::AIMBOT])
 		{
-			//bool spotted = process.ProcRead<bool>(enemyToAim + m_bSpotted);
-			bool spotted = SpottedByMe(enemyToAim);
-
-			if (spotted && enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first)
+			if (enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first)
 			{
-
 				uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 				Vector3 playerPos = process.ProcRead<Vector3>(lPlayer + m_vecOrigin);
 				Vector3 entPos = process.ProcRead<Vector3>(enemyToAim + m_vecOrigin);
@@ -235,7 +231,7 @@ void Multihack::AimBot()
 			if (first)
 				first = !first;
 		}
-		Sleep(10);
+		Sleep(1);
 	}
 }
 
@@ -257,8 +253,9 @@ uintptr_t Multihack::ClosestEnemy()
 		int entityTeam = process.ProcRead<int>(entity + m_iTeamNum);
 		// spectator
 		int isDormant = process.ProcRead<int>(entity + m_bDormant);
+		bool spotted = SpottedByMe(entity);
 		
-		if (entity && entityTeam != team && !isDormant && health > 0 && health < 101)
+		if (entity && spotted && entityTeam != team && !isDormant && health > 0 && health < 101)
 		{
 			// number 8 states for head bone id
 			Vector3 head = getEntHead(entity);
@@ -352,14 +349,14 @@ bool Multihack::SpottedByMe(uintptr_t player) const
 {
 	int localindex = GetLocalIndex();
 	long dwMask = process.ProcRead<long>(player + m_bSpottedByMask);
-	return bool(dwMask & (1 << (localindex - 1)));
+	return bool(dwMask & (1 << localindex));
 }
 
 int Multihack::GetLocalIndex() const
 {
 	uintptr_t engine = process.GetModule("engine.dll");
-	int localindex = process.ProcRead<int>(engine + 0x160);
-	return ++localindex;
+	uintptr_t clientState = process.ProcRead<uintptr_t>(engine + dwClientState);
+	return process.ProcRead<int>(clientState + dwClientState_GetLocalPlayer);
 }
 
 //void Multihack::HealthBar(uintptr_t entity, float health)
