@@ -9,7 +9,7 @@ public:
 	~ProcessHandler();
 	uintptr_t GetProcID() const;
 	HANDLE GetHandle() const;
-	uintptr_t GetModule(const char*);
+	uintptr_t GetModule(const char*) const;
 	template <typename T>
 	T ProcRead(uintptr_t) const;
 	template <typename T>

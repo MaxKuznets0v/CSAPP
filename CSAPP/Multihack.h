@@ -31,4 +31,6 @@ private:
 	void StopAll();
 	void DrawLine(float StartX, float StartY, float EndX, float End);
 	Vector3 getEntHead(uintptr_t) const;
+	int GetLocalIndex() const;
+	bool SpottedByMe(uintptr_t) const;
 };

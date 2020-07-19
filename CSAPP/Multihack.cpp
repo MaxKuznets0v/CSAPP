@@ -179,6 +179,8 @@ void Multihack::AimBot()
 	ClientUpdate();
 	std::thread findClosest;
 	uintptr_t enemyToAim = 0;
+	// flag that prevensts false activation
+	bool first;
 	while (true)
 	{
 		if (GetAsyncKeyState((int)hKeys::AIMBOT) & 1)
@@ -187,6 +189,7 @@ void Multihack::AimBot()
 			if (enabled[hID::AIMBOT])
 			{
 				std::cout << "Aimbot enabled\n";
+				first = true;
 				GetSize();
 				findClosest = std::thread(([this, &enemyToAim]()
 				{
@@ -206,30 +209,31 @@ void Multihack::AimBot()
 		}
 		if (enabled[hID::AIMBOT])
 		{
-			bool spotted = process.ProcRead<bool>(enemyToAim + m_bSpotted);
+			//bool spotted = process.ProcRead<bool>(enemyToAim + m_bSpotted);
+			bool spotted = SpottedByMe(enemyToAim);
 
-			if (spotted && enemyToAim && GetAsyncKeyState(VK_LBUTTON))
+			if (spotted && enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first)
 			{
+
 				uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 				Vector3 playerPos = process.ProcRead<Vector3>(lPlayer + m_vecOrigin);
 				Vector3 entPos = process.ProcRead<Vector3>(enemyToAim + m_vecOrigin);
-				///////////////////////////////
-				Vector3 playerHead = getEntHead(lPlayer);
 
+				Vector3 playerHead = getEntHead(lPlayer);
 				Vector3 enemyHead = getEntHead(enemyToAim);
 				Vector3 angles = getAngles(playerHead, enemyHead);
-				//////////////////////////////////
+				if (abs(angles.x) > 360 && abs(angles.y) > 360)
+					continue;
 				
-				//Vector3 angles = getAngles(playerPos, entPos);
 				Vector3 punchAngles = process.ProcRead<Vector3>(lPlayer + m_aimPunchAngle);
 				angles = angles - punchAngles * 2;
 
 				uintptr_t engine = process.GetModule("engine.dll");
 				uintptr_t clientState = process.ProcRead<uintptr_t>(engine + dwClientState);
-				Vector3 curAngles = process.ProcRead<Vector3>(clientState + dwClientState_ViewAngles);
-				Vector3 delta = angles - curAngles;
-				process.ProcWrite<Vector3>(clientState + dwClientState_ViewAngles, angles + delta * 0);
+				process.ProcWrite<Vector3>(clientState + dwClientState_ViewAngles, angles);
 			}
+			if (first)
+				first = !first;
 		}
 		Sleep(10);
 	}
@@ -342,6 +346,20 @@ void Multihack::Options()
 			
 		Sleep(1000);
 	}
+}
+
+bool Multihack::SpottedByMe(uintptr_t player) const
+{
+	int localindex = GetLocalIndex();
+	long dwMask = process.ProcRead<long>(player + m_bSpottedByMask);
+	return bool(dwMask & (1 << (localindex - 1)));
+}
+
+int Multihack::GetLocalIndex() const
+{
+	uintptr_t engine = process.GetModule("engine.dll");
+	int localindex = process.ProcRead<int>(engine + 0x160);
+	return ++localindex;
 }
 
 //void Multihack::HealthBar(uintptr_t entity, float health)

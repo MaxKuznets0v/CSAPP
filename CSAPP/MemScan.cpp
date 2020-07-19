@@ -33,7 +33,7 @@ ProcessHandler::ProcessHandler(const char* procName)
 		std::cout << "Can't take processes' snapshot!\n";
 }
 
-uintptr_t ProcessHandler::GetModule(const char* modName)
+uintptr_t ProcessHandler::GetModule(const char* modName) const
 {
 	// you should found process first
 	if (procID == NULL)
