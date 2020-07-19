@@ -2,8 +2,30 @@
 #include <cmath> 
 #include <exception>
 
-const int screenX = /*GetSystemMetrics(SM_CXSCREEN)*/1920;
-const int screenY = /*GetSystemMetrics(SM_CYSCREEN)*/1080;
+static int screenX;
+static int screenY;
+
+static void GetSize()
+{
+	RECT rect;
+	HWND csgownd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
+
+	/*if (GetWindowRect(csgownd, &rect))
+	{
+		screenX = rect.right - rect.left;
+		screenY = rect.bottom - rect.top;
+	}
+	else
+	{
+		screenX = -1;
+		screenY = -1;
+	}*/
+	screenX = 1920;
+	screenY = 1080;
+}
+
+//const int screenX = GetSystemMetrics(SM_CXSCREEN);
+//const int screenY = GetSystemMetrics(SM_CYSCREEN);
 #define M_PI 3.14159265358979323846
 
 

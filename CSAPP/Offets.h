@@ -2,6 +2,7 @@
 
 
 // csgo offsets (needed to be constantly updated)
+// are not used due to inconvinience (changed by csgo.hpp)
 namespace offsets
 {
 	uintptr_t dwEntityList = 0x4D523EC;

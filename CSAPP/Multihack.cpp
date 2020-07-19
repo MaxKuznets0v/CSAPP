@@ -176,14 +176,28 @@ void Multihack::RadarHack()
 
 void Multihack::AimBot()
 {
+	ClientUpdate();
 	std::thread findClosest;
+	uintptr_t enemyToAim = 0;
 	while (true)
 	{
 		if (GetAsyncKeyState((int)hKeys::AIMBOT) & 1)
 		{
 			enabled[hID::AIMBOT] = !enabled[hID::AIMBOT];
 			if (enabled[hID::AIMBOT])
+			{
 				std::cout << "Aimbot enabled\n";
+				GetSize();
+				findClosest = std::thread(([this, &enemyToAim]()
+				{
+					while (true)
+					{
+						enemyToAim = ClosestEnemy();
+						Sleep(1);
+					}
+				}));
+				findClosest.detach();
+			}
 			else
 			{
 				std::cout << "Aimbot disabled\n";
@@ -192,18 +206,6 @@ void Multihack::AimBot()
 		}
 		if (enabled[hID::AIMBOT])
 		{
-			ClientUpdate();
-			uintptr_t enemyToAim = 0;
-			findClosest = std::thread(([this, &enemyToAim]()
-			{
-				while (true)
-				{
-					enemyToAim = ClosestEnemy();
-					Sleep(1);
-				}
-			}));
-			findClosest.detach();
-
 			bool spotted = process.ProcRead<bool>(enemyToAim + m_bSpotted);
 
 			if (spotted && enemyToAim && GetAsyncKeyState(VK_LBUTTON))
@@ -211,8 +213,14 @@ void Multihack::AimBot()
 				uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 				Vector3 playerPos = process.ProcRead<Vector3>(lPlayer + m_vecOrigin);
 				Vector3 entPos = process.ProcRead<Vector3>(enemyToAim + m_vecOrigin);
+				///////////////////////////////
+				Vector3 playerHead = getEntHead(lPlayer);
+
+				Vector3 enemyHead = getEntHead(enemyToAim);
+				Vector3 angles = getAngles(playerHead, enemyHead);
+				//////////////////////////////////
 				
-				Vector3 angles = getAngles(playerPos, entPos);
+				//Vector3 angles = getAngles(playerPos, entPos);
 				Vector3 punchAngles = process.ProcRead<Vector3>(lPlayer + m_aimPunchAngle);
 				angles = angles - punchAngles * 2;
 
@@ -220,14 +228,19 @@ void Multihack::AimBot()
 				uintptr_t clientState = process.ProcRead<uintptr_t>(engine + dwClientState);
 				Vector3 curAngles = process.ProcRead<Vector3>(clientState + dwClientState_ViewAngles);
 				Vector3 delta = angles - curAngles;
-				process.ProcWrite<Vector3>(clientState + dwClientState_ViewAngles, angles + delta / 20);
+				process.ProcWrite<Vector3>(clientState + dwClientState_ViewAngles, angles + delta * 0);
 			}
 		}
+		Sleep(10);
 	}
 }
 
 uintptr_t Multihack::ClosestEnemy()
 {
+	if (screenX == screenY == -1)
+	{
+		return 0;
+	}
 	uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 	int team = process.ProcRead<int>(lPlayer + m_iTeamNum);
 	uintptr_t closest = 0;
@@ -241,14 +254,10 @@ uintptr_t Multihack::ClosestEnemy()
 		// spectator
 		int isDormant = process.ProcRead<int>(entity + m_bDormant);
 		
-		//double lowestDist = max(screenX, screenY);
-		
 		if (entity && entityTeam != team && !isDormant && health > 0 && health < 101)
 		{
 			// number 8 states for head bone id
-			uintptr_t boneBase = process.ProcRead<uintptr_t>(entity + m_dwBoneMatrix);
-			boneMatrix_t boneHead = process.ProcRead<boneMatrix_t>(boneBase + sizeof(boneHead) * 8);
-			Vector3 head{ boneHead.x, boneHead.y, boneHead.z };
+			Vector3 head = getEntHead(entity);
 			view_matrix_t mat = process.ProcRead<view_matrix_t>(moduleBase + dwViewMatrix);
 			head = WorldToScreen(head, mat);
 			if (head == Vector3{ -1, -1, -1 })
@@ -264,6 +273,13 @@ uintptr_t Multihack::ClosestEnemy()
 		}
 	}
 	return closest;
+}
+
+Vector3 Multihack::getEntHead(uintptr_t entity) const
+{
+	uintptr_t boneBase = process.ProcRead<uintptr_t>(entity + m_dwBoneMatrix);
+	boneMatrix_t boneHead = process.ProcRead<boneMatrix_t>(boneBase + sizeof(boneHead) * 8);
+	return { boneHead.x, boneHead.y, boneHead.z };
 }
 
 void Multihack::DrawLine(float StartX, float StartY, float EndX, float EndY){ //This function is optional for debugging.
