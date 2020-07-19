@@ -10,7 +10,7 @@ static void GetSize()
 	RECT rect;
 	HWND csgownd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
 
-	/*if (GetWindowRect(csgownd, &rect))
+	if (GetWindowRect(csgownd, &rect))
 	{
 		screenX = rect.right - rect.left;
 		screenY = rect.bottom - rect.top;
@@ -19,9 +19,9 @@ static void GetSize()
 	{
 		screenX = -1;
 		screenY = -1;
-	}*/
-	screenX = 1920;
-	screenY = 1080;
+	}
+	/*screenX = 1920;
+	screenY = 1080;*/
 }
 
 //const int screenX = GetSystemMetrics(SM_CXSCREEN);

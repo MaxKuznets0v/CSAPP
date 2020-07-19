@@ -196,7 +196,7 @@ void Multihack::AimBot()
 					while (true)
 					{
 						enemyToAim = ClosestEnemy();
-						Sleep(1);
+						Sleep(10);
 					}
 				}));
 				findClosest.detach();
@@ -218,7 +218,9 @@ void Multihack::AimBot()
 				Vector3 playerHead = getEntHead(lPlayer);
 				Vector3 enemyHead = getEntHead(enemyToAim);
 				Vector3 angles = getAngles(playerHead, enemyHead);
-				if (abs(angles.x) > 360 && abs(angles.y) > 360)
+
+				// some silly check (not sure if that's needed) 
+				if (abs(angles.x) > 360 || abs(angles.y) > 360)
 					continue;
 				
 				Vector3 punchAngles = process.ProcRead<Vector3>(lPlayer + m_aimPunchAngle);
@@ -226,12 +228,19 @@ void Multihack::AimBot()
 
 				uintptr_t engine = process.GetModule("engine.dll");
 				uintptr_t clientState = process.ProcRead<uintptr_t>(engine + dwClientState);
-				process.ProcWrite<Vector3>(clientState + dwClientState_ViewAngles, angles);
+
+				// Smoothing thing but de-facto is garbage
+				/*Vector3 curAngles = process.ProcRead<Vector3>(clientState + dwClientState_ViewAngles);
+				Vector3 delta = angles - curAngles;*/
+
+				// needs to avoid camera shaking after killing the enemy
+				if (process.ProcRead<int>(enemyToAim + m_iHealth))
+					process.ProcWrite<Vector3>(clientState + dwClientState_ViewAngles, angles);
 			}
 			if (first)
 				first = !first;
 		}
-		Sleep(1);
+		Sleep(10);
 	}
 }
 
@@ -302,11 +311,16 @@ Vector3 Multihack::getAngles(Vector3 cur, Vector3 dest) const
 
 	Vector3 delta = cur - dest;
 	double len = delta.len2();
-
+	// be sure that sinus is not greater than 1 by a absolute value
+	if (abs(delta.z / len) > 1)
+	{
+		// could be any number greater than 360
+		angles.x = 361;
+		return angles;
+	}
 	// convert from radian to angles multiplying by 180 / PI
 	angles.x = asinf(delta.z / len) * (180 / M_PI);
 	angles.y = atanf(delta.y / delta.x) * (180.f / M_PI);
-
 	if (delta.x >= 0)
 		angles.y += 180;
 
