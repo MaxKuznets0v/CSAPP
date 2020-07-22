@@ -8,6 +8,11 @@ using namespace signatures;
 
 Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 {
+	if (!process.GetProcID())
+	{
+		std::cout << "Run CS:GO first!\n";
+		return;
+	}
 	active = true;
 	//csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
 	std::thread updater([this]()
@@ -23,13 +28,19 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 	Options();
 }
 
+Multihack::~Multihack()
+{
+	active = false;
+	StopAll();
+}
+
 void Multihack::StopAll()
 {
 	// killing all the threads
 	for (int i = 0; i < cNums; ++i)
 	{
-		cheatTreads[i].~thread();
 		enabled[i] = false;
+		cheatTreads[i].~thread();
 	}
 }
 
@@ -163,7 +174,7 @@ void Multihack::RadarHack()
 		if (enabled[hID::RADAR_HACK])
 		{
 			// looping through entity list (64 since max number of players on a server is 64)
-			for (int i = 0; i < 64; ++i)
+			for (int i = 1; i < 64; ++i)
 			{
 				uintptr_t entity = process.ProcRead<uintptr_t>(moduleBase + dwEntityList + i * 0x10);
 				if (entity)
@@ -180,7 +191,7 @@ void Multihack::AimBot()
 	std::thread findClosest;
 	uintptr_t enemyToAim = 0;
 	// flag that prevensts false activation
-	bool first;
+	bool first = true;
 	bool working = true;
 	while (true)
 	{
@@ -338,12 +349,7 @@ void Multihack::ClientUpdate()
 
 void Multihack::Options()
 {
-	cheatTreads[hID::BHOP] = std::thread(&Multihack::Bhop, this);
-	cheatTreads[hID::RADAR_HACK] = std::thread(&Multihack::RadarHack, this);
-	cheatTreads[hID::ESP] = std::thread(&Multihack::ESP, this);
-	cheatTreads[hID::AIMBOT] = std::thread(&Multihack::AimBot, this);
-	for (int i = 0; i < cNums; ++i)
-		cheatTreads[i].detach();
+	LaunchThreads();
 
 	while (true)
 	{
@@ -351,7 +357,10 @@ void Multihack::Options()
 		{
 			active = !active;
 			if (active)
+			{
 				std::cout << "Multihack enabled\n";
+				LaunchThreads();
+			}
 			else
 			{
 				std::cout << "Multihack disabled\n";
@@ -363,8 +372,17 @@ void Multihack::Options()
 	}
 }
 
+void Multihack::LaunchThreads()
+{
+	cheatTreads[hID::BHOP] = std::thread(&Multihack::Bhop, this);
+	cheatTreads[hID::RADAR_HACK] = std::thread(&Multihack::RadarHack, this);
+	cheatTreads[hID::ESP] = std::thread(&Multihack::ESP, this);
+	cheatTreads[hID::AIMBOT] = std::thread(&Multihack::AimBot, this);
+}
+
 bool Multihack::SpottedByMe(uintptr_t player) const
 {
+	// checks whether enemy player was spotted by local player
 	int localindex = GetLocalIndex();
 	long dwMask = process.ProcRead<long>(player + m_bSpottedByMask);
 	return bool(dwMask & (1 << localindex));
@@ -372,6 +390,7 @@ bool Multihack::SpottedByMe(uintptr_t player) const
 
 int Multihack::GetLocalIndex() const
 {
+	// returns local player index
 	uintptr_t engine = process.GetModule("engine.dll");
 	uintptr_t clientState = process.ProcRead<uintptr_t>(engine + dwClientState);
 	return process.ProcRead<int>(clientState + dwClientState_GetLocalPlayer);
