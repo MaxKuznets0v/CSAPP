@@ -40,14 +40,14 @@ void Multihack::StopAll()
 	for (int i = 0; i < cNums; ++i)
 	{
 		enabled[i] = false;
-		cheatTreads[i].~thread();
+		cheatTreads[i].join();
 	}
 }
 
 void Multihack::ESP()
 {
 	ClientUpdate();
-	while (true)
+	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::ESP) & 1)
 		{
@@ -119,7 +119,7 @@ void Multihack::Bhop()
 	bool firstLaunch = true; 
 	ClientUpdate();
 
-	while (true)
+	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::BHOP) & 1)
 		{
@@ -161,7 +161,7 @@ void Multihack::Bhop()
 void Multihack::RadarHack()
 {
 	ClientUpdate();
-	while (true)
+	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::RADAR_HACK) & 1)
 		{
@@ -193,7 +193,8 @@ void Multihack::AimBot()
 	// flag that prevensts false activation
 	bool first = true;
 	bool working = true;
-	while (true)
+
+	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::AIMBOT) & 1)
 		{
