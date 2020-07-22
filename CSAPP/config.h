@@ -28,15 +28,15 @@ static void GetSize()
 //const int screenY = GetSystemMetrics(SM_CYSCREEN);
 #define M_PI 3.14159265358979323846
 
-
-const int cNums = 4;
+const int cNums = 5;
 // hotkeys for each hack
 enum class hKeys
 {
 	ESP = VK_F6,
 	BHOP = VK_F7,
 	AIMBOT = VK_F8,
-	RADAR_HACK = VK_F9
+	RADAR_HACK = VK_F9,
+	RECOIL = VK_F3
 };
 
 // hacks ids
@@ -45,7 +45,8 @@ enum hID
 	BHOP = 0,
 	RADAR_HACK,
 	ESP,
-	AIMBOT
+	AIMBOT,
+	RECOIL
 };
 
 // glow struct
@@ -71,6 +72,8 @@ struct Glow
 
 struct Vector3
 {
+	Vector3() : x(0), y(0), z(0) {}
+	Vector3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
 	float x, y, z;
 	bool operator==(Vector3 another) const
 	{

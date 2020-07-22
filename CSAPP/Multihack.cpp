@@ -259,6 +259,61 @@ void Multihack::AimBot()
 	}
 }
 
+void Multihack::RecoilControl()
+{
+	uintptr_t engine = process.GetModule("engine.dll");
+	Vector3 prevPunch{ 0, 0, 0 };
+
+	while (active)
+	{
+		if (GetAsyncKeyState((int)hKeys::RECOIL) & 1)
+		{
+			enabled[hID::RECOIL] = !enabled[hID::RECOIL];
+			if (enabled[hID::RECOIL])
+				std::cout << "Recoil control enabled\n";
+			else
+				std::cout << "Recoil control disabled\n";
+		}
+		if (enabled[hID::RECOIL])
+		{
+			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
+			int shots = process.ProcRead<int>(lPlayer + m_iShotsFired);
+
+			if (shots < 3/*!GetAsyncKeyState(VK_LBUTTON)*/)
+			{
+				prevPunch = std::move(Vector3(0, 0, 0));
+			}
+			else
+			{
+				uintptr_t clientState = process.ProcRead<uintptr_t>(engine + dwClientState);
+				Vector3 curAngles = process.ProcRead<Vector3>(clientState + dwClientState_ViewAngles);
+				Vector3 punchAngles = process.ProcRead<Vector3>(lPlayer + m_aimPunchAngle);
+
+				curAngles = curAngles + prevPunch - punchAngles * 2;
+				NormalizeAngles(curAngles);
+				process.ProcWrite<Vector3>(clientState + dwClientState_ViewAngles, curAngles);
+				prevPunch = punchAngles * 2;
+			}
+		}
+		Sleep(10);
+	}
+}
+
+void Multihack::NormalizeAngles(Vector3& vec)
+{
+	while (vec.y > 180)
+		vec.y -= 360;
+
+	while (vec.y < -180)
+		vec.y += 360;
+
+	if (vec.x > 89.0f)
+		vec.x = 89.0f;
+
+	if (vec.x < -89.0f)
+		vec.x = -89.0f;
+}
+
 uintptr_t Multihack::ClosestEnemy()
 {
 	if (screenX == screenY == -1)
@@ -378,6 +433,7 @@ void Multihack::LaunchThreads()
 	cheatTreads[hID::RADAR_HACK] = std::thread(&Multihack::RadarHack, this);
 	cheatTreads[hID::ESP] = std::thread(&Multihack::ESP, this);
 	cheatTreads[hID::AIMBOT] = std::thread(&Multihack::AimBot, this);
+	cheatTreads[hID::RECOIL] = std::thread(&Multihack::RecoilControl, this);
 }
 
 bool Multihack::SpottedByMe(uintptr_t player) const
