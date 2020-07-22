@@ -181,6 +181,7 @@ void Multihack::AimBot()
 	uintptr_t enemyToAim = 0;
 	// flag that prevensts false activation
 	bool first;
+	bool working = true;
 	while (true)
 	{
 		if (GetAsyncKeyState((int)hKeys::AIMBOT) & 1)
@@ -190,21 +191,24 @@ void Multihack::AimBot()
 			{
 				std::cout << "Aimbot enabled\n";
 				first = true;
+				working = true;
 				GetSize();
-				findClosest = std::thread(([this, &enemyToAim]()
+				findClosest = std::thread(([this, &enemyToAim, &working]()
 				{
-					while (true)
+					while (working)
 					{
 						enemyToAim = ClosestEnemy();
 						Sleep(10);
 					}
 				}));
-				findClosest.detach();
 			}
 			else
 			{
 				std::cout << "Aimbot disabled\n";
-				findClosest.~thread();
+				working = false;
+				enemyToAim = 0;
+				findClosest.join();
+				//findClosest.~thread();
 			}
 		}
 		if (enabled[hID::AIMBOT])
