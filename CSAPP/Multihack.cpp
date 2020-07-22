@@ -8,13 +8,9 @@ using namespace signatures;
 
 Multihack::Multihack()
 {
-	try
+	if (!process.GetProcID())
 	{
-		process = ProcessHandler("csgo.exe");
-	}
-	catch (std::runtime_error)
-	{
-		std::cout << "Run CS:GO first" << std::endl;
+		std::cout << "Run CS:GO first!\n";
 		return;
 	}
 	active = true;
@@ -44,14 +40,14 @@ void Multihack::StopAll()
 	for (int i = 0; i < cNums; ++i)
 	{
 		enabled[i] = false;
-		cheatTreads[i].~thread();
+		cheatTreads[i].join();
 	}
 }
 
 void Multihack::ESP()
 {
 	ClientUpdate();
-	while (true)
+	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::ESP) & 1)
 		{
@@ -123,7 +119,7 @@ void Multihack::Bhop()
 	bool firstLaunch = true; 
 	ClientUpdate();
 
-	while (true)
+	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::BHOP) & 1)
 		{
@@ -165,7 +161,7 @@ void Multihack::Bhop()
 void Multihack::RadarHack()
 {
 	ClientUpdate();
-	while (true)
+	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::RADAR_HACK) & 1)
 		{
@@ -196,8 +192,10 @@ void Multihack::AimBot()
 	bool working = true;
 	uintptr_t enemyToAim = 0;
 	// flag that prevensts false activation
-	bool first;
-	while (true)
+	bool first = true;
+	bool working = true;
+
+	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::AIMBOT) & 1)
 		{
@@ -217,13 +215,12 @@ void Multihack::AimBot()
 						Sleep(10);
 					}
 				}));
-				//findClosest.detach();
 			}
 			else
 			{
 				std::cout << "Aimbot disabled\n";
-				enemyToAim = 0;
 				working = false;
+				enemyToAim = 0;
 				findClosest.join();
 				//findClosest.~thread();
 			}
@@ -356,12 +353,7 @@ void Multihack::ClientUpdate()
 
 void Multihack::Options()
 {
-	cheatTreads[hID::BHOP] = std::thread(&Multihack::Bhop, this);
-	cheatTreads[hID::RADAR_HACK] = std::thread(&Multihack::RadarHack, this);
-	cheatTreads[hID::ESP] = std::thread(&Multihack::ESP, this);
-	cheatTreads[hID::AIMBOT] = std::thread(&Multihack::AimBot, this);
-	for (int i = 0; i < cNums; ++i)
-		cheatTreads[i].detach();
+	LaunchThreads();
 
 	while (true)
 	{
@@ -369,7 +361,10 @@ void Multihack::Options()
 		{
 			active = !active;
 			if (active)
+			{
 				std::cout << "Multihack enabled\n";
+				LaunchThreads();
+			}
 			else
 			{
 				std::cout << "Multihack disabled\n";
@@ -379,6 +374,14 @@ void Multihack::Options()
 			
 		Sleep(1000);
 	}
+}
+
+void Multihack::LaunchThreads()
+{
+	cheatTreads[hID::BHOP] = std::thread(&Multihack::Bhop, this);
+	cheatTreads[hID::RADAR_HACK] = std::thread(&Multihack::RadarHack, this);
+	cheatTreads[hID::ESP] = std::thread(&Multihack::ESP, this);
+	cheatTreads[hID::AIMBOT] = std::thread(&Multihack::AimBot, this);
 }
 
 bool Multihack::SpottedByMe(uintptr_t player) const

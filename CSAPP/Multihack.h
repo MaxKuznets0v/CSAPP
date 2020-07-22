@@ -30,6 +30,7 @@ private:
 	void ClientUpdate();
 	void Options();
 	void StopAll();
+	void LaunchThreads();
 	void DrawLine(float StartX, float StartY, float EndX, float End);
 	Vector3 getEntHead(uintptr_t) const;
 	int GetLocalIndex() const;
