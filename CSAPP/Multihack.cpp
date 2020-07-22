@@ -6,8 +6,17 @@ using namespace hazedumper;
 using namespace netvars;
 using namespace signatures;
 
-Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
+Multihack::Multihack()
 {
+	try
+	{
+		process = ProcessHandler("csgo.exe");
+	}
+	catch (std::runtime_error)
+	{
+		std::cout << "Run CS:GO first" << std::endl;
+		return;
+	}
 	active = true;
 	//csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
 	std::thread updater([this]()
@@ -23,13 +32,19 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 	Options();
 }
 
+Multihack::~Multihack()
+{
+	active = false;
+	StopAll();
+}
+
 void Multihack::StopAll()
 {
 	// killing all the threads
 	for (int i = 0; i < cNums; ++i)
 	{
-		cheatTreads[i].~thread();
 		enabled[i] = false;
+		cheatTreads[i].~thread();
 	}
 }
 
@@ -163,11 +178,11 @@ void Multihack::RadarHack()
 		if (enabled[hID::RADAR_HACK])
 		{
 			// looping through entity list (64 since max number of players on a server is 64)
-			for (int i = 0; i < 64; ++i)
+			for (int i = 1; i < 64; ++i)
 			{
 				uintptr_t entity = process.ProcRead<uintptr_t>(moduleBase + dwEntityList + i * 0x10);
 				if (entity)
-					process.ProcWrite(entity + m_bSpotted, true);
+					process.ProcWrite<bool>(entity + m_bSpotted, true);
 			}
 		}
 		Sleep(100);
@@ -178,6 +193,7 @@ void Multihack::AimBot()
 {
 	ClientUpdate();
 	std::thread findClosest;
+	bool working = true;
 	uintptr_t enemyToAim = 0;
 	// flag that prevensts false activation
 	bool first;
@@ -190,27 +206,33 @@ void Multihack::AimBot()
 			{
 				std::cout << "Aimbot enabled\n";
 				first = true;
+				working = true;
 				GetSize();
-				findClosest = std::thread(([this, &enemyToAim]()
+				findClosest = std::thread(([this, &enemyToAim, &working]()
 				{
-					while (true)
+					while (working)
 					{
 						enemyToAim = ClosestEnemy();
+						std::cout << enemyToAim << std::endl;
 						Sleep(10);
 					}
 				}));
-				findClosest.detach();
+				//findClosest.detach();
 			}
 			else
 			{
 				std::cout << "Aimbot disabled\n";
-				findClosest.~thread();
+				enemyToAim = 0;
+				working = false;
+				findClosest.join();
+				//findClosest.~thread();
 			}
 		}
 		if (enabled[hID::AIMBOT])
 		{
 			if (enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first)
 			{
+				std::cout << "Aiming on " << enemyToAim << std::endl;
 				uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 				Vector3 playerPos = process.ProcRead<Vector3>(lPlayer + m_vecOrigin);
 				Vector3 entPos = process.ProcRead<Vector3>(enemyToAim + m_vecOrigin);
@@ -361,6 +383,7 @@ void Multihack::Options()
 
 bool Multihack::SpottedByMe(uintptr_t player) const
 {
+	// checks whether enemy player was spotted by local player
 	int localindex = GetLocalIndex();
 	long dwMask = process.ProcRead<long>(player + m_bSpottedByMask);
 	return bool(dwMask & (1 << localindex));
@@ -368,6 +391,7 @@ bool Multihack::SpottedByMe(uintptr_t player) const
 
 int Multihack::GetLocalIndex() const
 {
+	// returns local player index
 	uintptr_t engine = process.GetModule("engine.dll");
 	uintptr_t clientState = process.ProcRead<uintptr_t>(engine + dwClientState);
 	return process.ProcRead<int>(clientState + dwClientState_GetLocalPlayer);

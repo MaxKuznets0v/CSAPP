@@ -2,6 +2,12 @@
 #include <TlHelp32.h>
 #include <iostream>
 
+ProcessHandler::ProcessHandler()
+{
+	hProc = NULL;
+	procID = NULL;
+}
+
 ProcessHandler::ProcessHandler(const char* procName)
 {
 	hProc = NULL;
@@ -26,11 +32,11 @@ ProcessHandler::ProcessHandler(const char* procName)
 				return;
 			}
 		}
-		std::cout << "Can't find the process in a snapshot!\n";
 		CloseHandle(hSnap);
+		throw std::runtime_error("Can't find the process in a snapshot!\n");
 	}
 	else
-		std::cout << "Can't take processes' snapshot!\n";
+		throw std::runtime_error("Can't take processes' snapshot!\n");
 }
 
 uintptr_t ProcessHandler::GetModule(const char* modName) const

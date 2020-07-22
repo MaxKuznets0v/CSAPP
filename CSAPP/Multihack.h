@@ -8,6 +8,7 @@ class Multihack
 {
 public:
 	Multihack();
+	~Multihack();
 private:
 	ProcessHandler process;
 	uintptr_t moduleBase;
