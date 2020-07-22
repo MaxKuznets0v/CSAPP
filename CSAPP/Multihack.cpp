@@ -6,7 +6,7 @@ using namespace hazedumper;
 using namespace netvars;
 using namespace signatures;
 
-Multihack::Multihack()
+Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 {
 	if (!process.GetProcID())
 	{
@@ -189,11 +189,9 @@ void Multihack::AimBot()
 {
 	ClientUpdate();
 	std::thread findClosest;
-	bool working = true;
 	uintptr_t enemyToAim = 0;
 	// flag that prevensts false activation
 	bool first = true;
-	bool working = true;
 
 	while (active)
 	{
@@ -204,11 +202,10 @@ void Multihack::AimBot()
 			{
 				std::cout << "Aimbot enabled\n";
 				first = true;
-				working = true;
 				GetSize();
-				findClosest = std::thread(([this, &enemyToAim, &working]()
+				findClosest = std::thread(([this, &enemyToAim]()
 				{
-					while (working)
+					while (enabled[hID::AIMBOT])
 					{
 						enemyToAim = ClosestEnemy();
 						std::cout << enemyToAim << std::endl;
@@ -219,7 +216,6 @@ void Multihack::AimBot()
 			else
 			{
 				std::cout << "Aimbot disabled\n";
-				working = false;
 				enemyToAim = 0;
 				findClosest.join();
 				//findClosest.~thread();

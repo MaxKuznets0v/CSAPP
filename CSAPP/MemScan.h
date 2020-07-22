@@ -5,7 +5,6 @@
 class ProcessHandler
 {
 public:
-	ProcessHandler();
 	ProcessHandler(const char*);
 	~ProcessHandler();
 	uintptr_t GetProcID() const;
