@@ -6,7 +6,7 @@ using namespace hazedumper;
 using namespace netvars;
 using namespace signatures;
 
-Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
+Multihack::Multihack()
 {
 	if (!process.GetProcID())
 	{
@@ -178,7 +178,7 @@ void Multihack::RadarHack()
 			{
 				uintptr_t entity = process.ProcRead<uintptr_t>(moduleBase + dwEntityList + i * 0x10);
 				if (entity)
-					process.ProcWrite(entity + m_bSpotted, true);
+					process.ProcWrite<bool>(entity + m_bSpotted, true);
 			}
 		}
 		Sleep(100);
@@ -189,6 +189,7 @@ void Multihack::AimBot()
 {
 	ClientUpdate();
 	std::thread findClosest;
+	bool working = true;
 	uintptr_t enemyToAim = 0;
 	// flag that prevensts false activation
 	bool first = true;
@@ -210,6 +211,7 @@ void Multihack::AimBot()
 					while (working)
 					{
 						enemyToAim = ClosestEnemy();
+						std::cout << enemyToAim << std::endl;
 						Sleep(10);
 					}
 				}));
@@ -227,6 +229,7 @@ void Multihack::AimBot()
 		{
 			if (enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first)
 			{
+				std::cout << "Aiming on " << enemyToAim << std::endl;
 				uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 				Vector3 playerPos = process.ProcRead<Vector3>(lPlayer + m_vecOrigin);
 				Vector3 entPos = process.ProcRead<Vector3>(enemyToAim + m_vecOrigin);
