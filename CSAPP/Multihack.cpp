@@ -223,10 +223,15 @@ void Multihack::AimBot()
 		}
 		if (enabled[hID::AIMBOT])
 		{
-			if (enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first)
+			// getting weapon id
+			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
+			uintptr_t weaponAddress = process.ProcRead<uintptr_t>(lPlayer + m_hActiveWeapon) & 0xFFF;
+			int m_iBase = process.ProcRead<int>(moduleBase + dwEntityList + (weaponAddress - 1) * 0x10);
+			int id = process.ProcRead<int>(m_iBase + m_iItemDefinitionIndex);
+
+			// id = 59 states for knife
+			if (enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first && id != 59)
 			{
-				std::cout << "Aiming on " << enemyToAim << std::endl;
-				uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 				Vector3 playerPos = process.ProcRead<Vector3>(lPlayer + m_vecOrigin);
 				Vector3 entPos = process.ProcRead<Vector3>(enemyToAim + m_vecOrigin);
 
