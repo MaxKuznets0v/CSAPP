@@ -264,8 +264,34 @@ void Multihack::AimBot()
 	}
 }
 
+void Multihack::AntiFlash()
+{
+	ClientUpdate();
+
+	while (active)
+	{
+		if (GetAsyncKeyState((int)hKeys::FLASH) & 1)
+		{
+			enabled[hID::FLASH] = !enabled[hID::FLASH];
+			if (enabled[hID::FLASH])
+				std::cout << "Antiflash enabled\n";
+			else
+				std::cout << "Antiflash disabled\n";
+		}
+		if (enabled[hID::FLASH])
+		{
+			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
+			uintptr_t flashDuration = process.ProcRead<uintptr_t>(lPlayer + m_flFlashDuration);
+			if (flashDuration)
+				process.ProcWrite<uintptr_t>(lPlayer + m_flFlashDuration, 0);
+		}
+		Sleep(10);
+	}
+}
+
 void Multihack::RecoilControl()
 {
+	ClientUpdate(); 
 	uintptr_t engine = process.GetModule("engine.dll");
 	Vector3 prevPunch{ 0, 0, 0 };
 
@@ -439,6 +465,7 @@ void Multihack::LaunchThreads()
 	cheatTreads[hID::ESP] = std::thread(&Multihack::ESP, this);
 	cheatTreads[hID::AIMBOT] = std::thread(&Multihack::AimBot, this);
 	cheatTreads[hID::RECOIL] = std::thread(&Multihack::RecoilControl, this);
+	cheatTreads[hID::FLASH] = std::thread(&Multihack::AntiFlash, this);
 }
 
 bool Multihack::SpottedByMe(uintptr_t player) const

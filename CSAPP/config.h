@@ -28,7 +28,7 @@ static void GetSize()
 //const int screenY = GetSystemMetrics(SM_CYSCREEN);
 #define M_PI 3.14159265358979323846
 
-const int cNums = 5;
+const int cNums = 6;
 // hotkeys for each hack
 enum class hKeys
 {
@@ -36,7 +36,8 @@ enum class hKeys
 	BHOP = VK_F7,
 	AIMBOT = VK_F8,
 	RADAR_HACK = VK_F9,
-	RECOIL = VK_F3
+	RECOIL = VK_F3,
+	FLASH = VK_F4
 };
 
 // hacks ids
@@ -46,7 +47,8 @@ enum hID
 	RADAR_HACK,
 	ESP,
 	AIMBOT,
-	RECOIL
+	RECOIL,
+	FLASH
 };
 
 // glow struct
