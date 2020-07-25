@@ -25,6 +25,7 @@ private:
 	void Bhop();
 	void RadarHack();
 	void AimBot();
+	void TriggerBot();
 	void RecoilControl();
 	void AntiFlash();
 	void NormalizeAngles(Vector3&);

@@ -264,6 +264,28 @@ void Multihack::AimBot()
 	}
 }
 
+void Multihack::TriggerBot()
+{
+	ClientUpdate();
+
+	while (active)
+	{
+		if (GetAsyncKeyState((int)hKeys::TRIGGER) & 1)
+		{
+			enabled[hID::TRIGGER] = !enabled[hID::TRIGGER];
+			if (enabled[hID::TRIGGER])
+				std::cout << "Trigger bot enabled\n";
+			else
+				std::cout << "Trigger bot disabled\n";
+		}
+		if (enabled[hID::TRIGGER])
+		{
+
+		}
+		Sleep(10);
+	}
+}
+
 void Multihack::AntiFlash()
 {
 	ClientUpdate();
@@ -273,17 +295,18 @@ void Multihack::AntiFlash()
 		if (GetAsyncKeyState((int)hKeys::FLASH) & 1)
 		{
 			enabled[hID::FLASH] = !enabled[hID::FLASH];
-			if (enabled[hID::FLASH])
-				std::cout << "Antiflash enabled\n";
-			else
-				std::cout << "Antiflash disabled\n";
-		}
-		if (enabled[hID::FLASH])
-		{
 			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
-			uintptr_t flashDuration = process.ProcRead<uintptr_t>(lPlayer + m_flFlashDuration);
-			if (flashDuration)
-				process.ProcWrite<uintptr_t>(lPlayer + m_flFlashDuration, 0);
+
+			if (enabled[hID::FLASH])
+			{
+				process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 60);
+				std::cout << "Antiflash enabled\n";
+			}
+			else
+			{
+				process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 255);
+				std::cout << "Antiflash disabled\n";
+			}
 		}
 		Sleep(10);
 	}
@@ -466,6 +489,7 @@ void Multihack::LaunchThreads()
 	cheatTreads[hID::AIMBOT] = std::thread(&Multihack::AimBot, this);
 	cheatTreads[hID::RECOIL] = std::thread(&Multihack::RecoilControl, this);
 	cheatTreads[hID::FLASH] = std::thread(&Multihack::AntiFlash, this);
+	cheatTreads[hID::TRIGGER] = std::thread(&Multihack::TriggerBot, this);
 }
 
 bool Multihack::SpottedByMe(uintptr_t player) const
