@@ -225,12 +225,14 @@ void Multihack::AimBot()
 		{
 			// getting weapon id
 			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
-			uintptr_t weaponAddress = process.ProcRead<uintptr_t>(lPlayer + m_hActiveWeapon) & 0xFFF;
-			int m_iBase = process.ProcRead<int>(moduleBase + dwEntityList + (weaponAddress - 1) * 0x10);
-			int id = process.ProcRead<int>(m_iBase + m_iItemDefinitionIndex);
+			int id = WeaponID(lPlayer);
 
-			// id = 59 states for knife
-			if (enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first && id != 59)
+			// checking for shooting ability
+			bool weaponInHand = true;
+			if (id > 40 && id < 60 || id > 67 && id < 526)
+				weaponInHand = false;
+
+			if (enemyToAim && GetAsyncKeyState(VK_LBUTTON) && !first && weaponInHand)
 			{
 				Vector3 playerPos = process.ProcRead<Vector3>(lPlayer + m_vecOrigin);
 				Vector3 entPos = process.ProcRead<Vector3>(enemyToAim + m_vecOrigin);
@@ -267,6 +269,8 @@ void Multihack::AimBot()
 void Multihack::TriggerBot()
 {
 	ClientUpdate();
+	int checkTime = 10;
+	bool wasEnabled = false;
 
 	while (active)
 	{
@@ -274,28 +278,75 @@ void Multihack::TriggerBot()
 		{
 			enabled[hID::TRIGGER] = !enabled[hID::TRIGGER];
 			if (enabled[hID::TRIGGER])
+			{
 				std::cout << "Trigger bot enabled\n";
+				if (enabled[hID::RECOIL])
+					wasEnabled = true;
+				enabled[hID::RECOIL] = true;
+			}
 			else
+			{
 				std::cout << "Trigger bot disabled\n";
+				if (!wasEnabled)
+					enabled[hID::RECOIL] = false;
+			}
 		}
 		if (enabled[hID::TRIGGER])
 		{
+			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
+			int crosshairID = process.ProcRead<int>(lPlayer + m_iCrosshairId);
+			uintptr_t crosshairEntity = process.ProcRead<uintptr_t>(moduleBase + dwEntityList + (crosshairID - 1) * 0x10);
+			int entityHealth = process.ProcRead<int>(crosshairEntity + m_iHealth);
+			int crosshairTeam = process.ProcRead<int>(crosshairEntity + m_iTeamNum);
+			int localTeam = process.ProcRead<int>(lPlayer + m_iTeamNum);
 
+			int id = WeaponID(lPlayer);
+
+			// weapon validation
+			bool validWeapon = true;
+			if (id > 40 && id < 60 || id > 67 && id < 526)
+				validWeapon = false;
+
+			// cheking for sniper rifle scope
+			if (id == 40 || id == 38 || id == 9 || id == 262155 || id == 11)
+			{
+				bool isScoped = process.ProcRead<bool>(lPlayer + m_bIsScoped);
+				if (!isScoped)
+					validWeapon = false;
+			}
+
+			// for background team is 0 **Actual shooting**
+			if (localTeam && entityHealth > 0 && entityHealth < 101 && localTeam != crosshairTeam && 
+				crosshairID < 64 && validWeapon)
+			{
+				process.ProcWrite<int>(moduleBase + dwForceAttack, 5);
+				Sleep(1);
+				process.ProcWrite<int>(moduleBase + dwForceAttack, 4);
+			}
 		}
-		Sleep(10);
+
+		// changing hack delay
+		if (GetAsyncKeyState(VK_DOWN) & 1 && checkTime > 5)
+			checkTime -= 5;
+		if (GetAsyncKeyState(VK_UP) & 1)
+			checkTime += 5;
+
+		Sleep(checkTime);
 	}
 }
 
 void Multihack::AntiFlash()
 {
 	ClientUpdate();
+	// making sure that antiflash disabled
+	uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
+	process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 255);
 
 	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::FLASH) & 1)
 		{
 			enabled[hID::FLASH] = !enabled[hID::FLASH];
-			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 
 			if (enabled[hID::FLASH])
 			{
@@ -351,6 +402,13 @@ void Multihack::RecoilControl()
 		}
 		Sleep(10);
 	}
+}
+
+int Multihack::WeaponID(uintptr_t player)
+{
+	uintptr_t weaponAddress = process.ProcRead<uintptr_t>(player + m_hActiveWeapon) & 0xFFF;
+	int m_iBase = process.ProcRead<int>(moduleBase + dwEntityList + (weaponAddress - 1) * 0x10);
+	return process.ProcRead<int>(m_iBase + m_iItemDefinitionIndex);
 }
 
 void Multihack::NormalizeAngles(Vector3& vec)
