@@ -41,7 +41,8 @@ void Multihack::StopAll()
 	for (int i = 0; i < cNums; ++i)
 	{
 		enabled[i] = false;
-		cheatTreads[i].join();
+		if (cheatTreads[i].joinable())
+			cheatTreads[i].join();
 	}
 }
 
