@@ -10,7 +10,11 @@ static void GetSize()
 	RECT rect;
 	HWND csgownd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
 
-	if (GetWindowRect(csgownd, &rect))
+	SetProcessDPIAware();
+
+	screenX = GetSystemMetrics(SM_CXSCREEN);
+	screenY = GetSystemMetrics(SM_CYSCREEN);
+	/*if (GetWindowRect(csgownd, &rect))
 	{
 		screenX = rect.right - rect.left;
 		screenY = rect.bottom - rect.top;
@@ -19,13 +23,9 @@ static void GetSize()
 	{
 		screenX = -1;
 		screenY = -1;
-	}
-	/*screenX = 1920;
-	screenY = 1080;*/
+	}*/
 }
 
-//const int screenX = GetSystemMetrics(SM_CXSCREEN);
-//const int screenY = GetSystemMetrics(SM_CYSCREEN);
 #define M_PI 3.14159265358979323846
 
 const int cNums = 7;
@@ -38,7 +38,8 @@ enum class hKeys
 	RADAR_HACK = VK_F9,
 	RECOIL = VK_F3,
 	FLASH = VK_F4,
-	TRIGGER = VK_F5
+	TRIGGER = VK_F5,
+	CROSSHAIR = VK_INSERT
 };
 
 // hacks ids
@@ -50,7 +51,8 @@ enum hID
 	AIMBOT,
 	RECOIL,
 	FLASH,
-	TRIGGER
+	TRIGGER,
+	CROSSHAIR
 };
 
 // glow struct

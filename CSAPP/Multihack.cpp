@@ -14,7 +14,8 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 		return;
 	}
 	active = true;
-	//csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
+	GetSize();
+	//HDC csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
 	std::thread updater([this]()
 	{
 		// updating client.dll file (in case game changes)
@@ -202,13 +203,11 @@ void Multihack::AimBot()
 			{
 				std::cout << "Aimbot enabled\n";
 				first = true;
-				GetSize();
 				findClosest = std::thread(([this, &enemyToAim]()
 				{
 					while (enabled[hID::AIMBOT])
 					{
 						enemyToAim = ClosestEnemy();
-						std::cout << enemyToAim << std::endl;
 						Sleep(10);
 					}
 				}));
@@ -411,6 +410,60 @@ int Multihack::WeaponID(uintptr_t player)
 	return process.ProcRead<int>(m_iBase + m_iItemDefinitionIndex);
 }
 
+void Multihack::DrawCrosshair(HDC& hDC, HBRUSH brush) const
+{
+	//GetSize();
+	//Rectangle(hDC, screenX / 2 - 4, screenY / 2 - 4, screenX / 2 + 4, screenY / 2 + 4);
+	RECT crosshair{ screenX / 2 - 4,  screenY / 2 - 4, screenX / 2 + 4, screenY / 2 + 4 };
+	FillRect(hDC, &crosshair, brush);
+}
+
+void Multihack::Crosshair()
+{
+	HDC csgoDC;
+	HBRUSH brush = HBRUSH();
+	bool exist = false;
+
+	while (active)
+	{
+		if (GetAsyncKeyState((int)hKeys::CROSSHAIR) & 1)
+		{
+			enabled[hID::CROSSHAIR] = !enabled[hID::CROSSHAIR];
+
+			if (enabled[hID::CROSSHAIR])
+			{
+				brush = CreateSolidBrush(RGB(0, 255, 0));
+				csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
+				std::cout << "Auto crosshair enabled\n";
+			}
+			else
+			{
+				std::cout << "Auto crosshair disabled\n";
+				DeleteObject(brush);
+			}
+		}
+		if (enabled[hID::CROSSHAIR])
+		{
+			uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
+			int id = WeaponID(lPlayer);
+			bool draw = false;
+
+			// cheking for sniper rifle scope
+			if (id == 40 || id == 38 || id == 9 || id == 262155 || id == 11)
+			{
+				bool isScoped = process.ProcRead<bool>(lPlayer + m_bIsScoped);
+				if (!isScoped)
+					draw = true;
+			}
+
+			if (draw)
+				DrawCrosshair(csgoDC, brush);
+		}
+
+		Sleep(1);
+	}
+}
+
 void Multihack::NormalizeAngles(Vector3& vec)
 {
 	while (vec.y > 180)
@@ -548,6 +601,7 @@ void Multihack::LaunchThreads()
 	cheatTreads[hID::RECOIL] = std::thread(&Multihack::RecoilControl, this);
 	cheatTreads[hID::FLASH] = std::thread(&Multihack::AntiFlash, this);
 	cheatTreads[hID::TRIGGER] = std::thread(&Multihack::TriggerBot, this);
+	//cheatTreads[hID::CROSSHAIR] = std::thread(&Multihack::Crosshair, this);
 }
 
 bool Multihack::SpottedByMe(uintptr_t player) const
