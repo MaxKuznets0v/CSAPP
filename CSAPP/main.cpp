@@ -16,7 +16,7 @@ int main()
 			system("cls");
 			cout << "Run CS:GO application!" << endl;
 		}
-		Sleep(1000);
+		Sleep(5000);
 	}
 	return 0;
 }

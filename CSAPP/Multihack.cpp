@@ -25,6 +25,7 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 		}
 	});
 	updater.detach();
+	PrintMenu();
 	Options();
 }
 
@@ -60,6 +61,7 @@ void Multihack::ESP()
 		if (GetAsyncKeyState((int)hKeys::ESP) & 1)
 		{
 			enabled[hID::ESP] = !enabled[hID::ESP];
+			std::cout << '\a';
 			/*if (enabled[hID::ESP])
 				std::cout << "ESP enabled\n";
 			else
@@ -133,6 +135,7 @@ void Multihack::Bhop()
 		if (GetAsyncKeyState((int)hKeys::BHOP) & 1)
 		{
 			enabled[hID::BHOP] = !enabled[hID::BHOP];
+			std::cout << '\a';
 			if (enabled[hID::BHOP])
 			{
 				//std::cout << "Bhop enabled\n";
@@ -176,6 +179,7 @@ void Multihack::RadarHack()
 		if (GetAsyncKeyState((int)hKeys::RADAR_HACK) & 1)
 		{
 			enabled[hID::RADAR_HACK] = !enabled[hID::RADAR_HACK];
+			std::cout << '\a';
 			/*if (enabled[hID::RADAR_HACK])
 				std::cout << "Radar hack enabled\n";
 			else
@@ -209,6 +213,7 @@ void Multihack::AimBot()
 		if (GetAsyncKeyState((int)hKeys::AIMBOT) & 1)
 		{
 			enabled[hID::AIMBOT] = !enabled[hID::AIMBOT];
+			std::cout << '\a';
 			if (enabled[hID::AIMBOT])
 			{
 				//std::cout << "Aimbot enabled\n";
@@ -287,6 +292,7 @@ void Multihack::TriggerBot()
 		if (GetAsyncKeyState((int)hKeys::TRIGGER) & 1)
 		{
 			enabled[hID::TRIGGER] = !enabled[hID::TRIGGER];
+			std::cout << '\a';
 			if (enabled[hID::TRIGGER])
 			{
 				//std::cout << "Trigger bot enabled\n";
@@ -359,6 +365,7 @@ void Multihack::AntiFlash()
 		{
 			enabled[hID::FLASH] = !enabled[hID::FLASH];
 
+			std::cout << '\a';
 			if (enabled[hID::FLASH])
 			{
 				process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 60);
@@ -386,6 +393,7 @@ void Multihack::RecoilControl()
 		if (GetAsyncKeyState((int)hKeys::RECOIL) & 1)
 		{
 			enabled[hID::RECOIL] = !enabled[hID::RECOIL];
+			std::cout << '\a';
 			/*if (enabled[hID::RECOIL])
 				std::cout << "Recoil control enabled\n";
 			else
