@@ -1,5 +1,6 @@
 #include "Multihack.h"
 #include <iostream>
+#include <string>
 #include "csgo.hpp"
 #include <iomanip>
 
@@ -278,6 +279,8 @@ void Multihack::AimBot()
 				first = !first;
 		}
 		Sleep(10);
+		if (!active && findClosest.joinable())
+			findClosest.join();
 	}
 }
 
@@ -305,6 +308,7 @@ void Multihack::TriggerBot()
 				//std::cout << "Trigger bot disabled\n";
 				if (!wasEnabled)
 					enabled[hID::RECOIL] = false;
+				wasEnabled = false;
 			}
 			PrintMenu();
 		}
@@ -600,14 +604,16 @@ void Multihack::Options()
 			active = !active;
 			if (active)
 			{
-				std::cout << "Multihack enabled\n";
+				//std::cout << "Multihack enabled\n";
 				LaunchThreads();
 			}
 			else
 			{
-				std::cout << "Multihack disabled\n";
+				//std::cout << "Multihack disabled\n";
 				StopAll();
 			}
+			PrintMenu();
+			std::cout << '\a';
 		}
 			
 		Sleep(1000);
@@ -665,22 +671,46 @@ int Multihack::GetLocalIndex() const
 //	DeleteObject(brush);
 //}
 
-void Multihack::PrintMenu() const
+void Multihack::PrintMenu()
 {
 	using std::cout;
 	using std::endl;
 	using std::setw;
+
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
-	//SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
+	std::string stat;
+	int color;
+	if (active)
+	{
+		stat = "ACTIVE";
+		color = (int)Color::GREEN;
+	}
+	else
+	{
+		stat = "STOPPED";
+		color = (int)Color::RED;
+	}
+
+
+	std::lock_guard<std::mutex> guard(printLock);
 	system("cls");
 	cout << "-------------- Menu --------------" << endl <<
 		std::setiosflags(std::ios::left) << "HotKey | " << setw(15) << "Cheat" << '|' << " State" << endl <<
 		"----------------------------------" << endl;
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | color));
+	cout << setw(7) << "END";
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
+	cout << "| ";
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | color));
+	cout << setw(15) << "Multicheat";
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
+	cout << "| "; 
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | color));
+	cout << stat << endl;
 	for (int i = 0; i < cNums; ++i)
 		PrintCheatInfo(i);
 }
 
-#include <string>
 void Multihack::PrintCheatInfo(int ind) const
 {
 	using std::cout;

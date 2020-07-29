@@ -2,6 +2,7 @@
 #include "MemScan.h"
 #include "config.h"
 #include <thread>
+#include <mutex>
 
 
 class Multihack
@@ -13,6 +14,7 @@ public:
 private:
 	ProcessHandler process;
 	uintptr_t moduleBase;
+	std::mutex printLock;
 	//HDC csgoDC;
 	// multicheat activity
 	bool active;
@@ -44,6 +46,6 @@ private:
 	int GetLocalIndex() const;
 	bool SpottedByMe(uintptr_t) const;
 
-	void PrintMenu() const;
+	void PrintMenu();
 	void PrintCheatInfo(int) const;
 };

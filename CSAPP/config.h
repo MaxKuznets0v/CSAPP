@@ -7,10 +7,10 @@ static int screenY;
 
 static void GetSize()
 {
-	RECT rect;
+	/*RECT rect;
 	HWND csgownd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
 
-	SetProcessDPIAware();
+	SetProcessDPIAware();*/
 
 	screenX = GetSystemMetrics(SM_CXSCREEN);
 	screenY = GetSystemMetrics(SM_CYSCREEN);

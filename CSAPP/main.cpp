@@ -11,7 +11,7 @@ int main()
 			Multihack mh;
 			break;
 		}
-		catch (runtime_error& e)
+		catch (runtime_error)
 		{
 			system("cls");
 			cout << "Run CS:GO application!" << endl;
