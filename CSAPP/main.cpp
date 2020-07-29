@@ -1,8 +1,22 @@
 #include "Multihack.h"
+#include <iostream>
 using namespace std;
 
 int main()
 {
-	Multihack mh;
+	while (true)
+	{
+		try 
+		{
+			Multihack mh;
+			break;
+		}
+		catch (runtime_error& e)
+		{
+			system("cls");
+			cout << "Run CS:GO application!" << endl;
+		}
+		Sleep(1000);
+	}
 	return 0;
 }

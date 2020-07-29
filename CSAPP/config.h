@@ -32,26 +32,26 @@ const int cNums = 7;
 // hotkeys for each hack
 enum class hKeys
 {
-	ESP = VK_F6,
-	BHOP = VK_F7,
-	AIMBOT = VK_F8,
-	RADAR_HACK = VK_F9,
-	RECOIL = VK_F3,
-	FLASH = VK_F4,
-	TRIGGER = VK_F5,
+	ESP = VK_NUMPAD1,
+	BHOP = VK_NUMPAD2,
+	RADAR_HACK = VK_NUMPAD3,
+	RECOIL = VK_NUMPAD4,
+	FLASH = VK_NUMPAD5,
+	TRIGGER = VK_NUMPAD6,
+	AIMBOT = VK_NUMPAD7,
 	CROSSHAIR = VK_INSERT
 };
 
 // hacks ids
 enum hID
 {
-	BHOP = 0,
+	ESP = 0,
+	BHOP,
 	RADAR_HACK,
-	ESP,
-	AIMBOT,
 	RECOIL,
 	FLASH,
 	TRIGGER,
+	AIMBOT,
 	CROSSHAIR
 };
 
@@ -148,4 +148,11 @@ struct boneMatrix_t
 	float y;
 	byte pad2[12];
 	float z;
+};
+
+enum class Color
+{
+	RED = 4,
+	GREEN = 2,
+	WHITE = 15
 };

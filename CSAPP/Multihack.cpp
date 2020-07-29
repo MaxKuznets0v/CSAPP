@@ -1,18 +1,17 @@
 #include "Multihack.h"
 #include <iostream>
-//#include "Offets.h"
 #include "csgo.hpp"
+#include <iomanip>
+
 using namespace hazedumper;
 using namespace netvars;
 using namespace signatures;
 
 Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 {
-	if (!process.GetProcID())
-	{
-		std::cout << "Run CS:GO first!\n";
-		return;
-	}
+	if (!Cheatable())
+		throw std::runtime_error("Run CS:GO first!");
+
 	active = true;
 	GetSize();
 	//HDC csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
@@ -27,6 +26,13 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 	});
 	updater.detach();
 	Options();
+}
+
+bool Multihack::Cheatable() const
+{
+	if (!process.GetProcID())
+		return false;
+	return true;
 }
 
 Multihack::~Multihack()
@@ -54,10 +60,11 @@ void Multihack::ESP()
 		if (GetAsyncKeyState((int)hKeys::ESP) & 1)
 		{
 			enabled[hID::ESP] = !enabled[hID::ESP];
-			if (enabled[hID::ESP])
+			/*if (enabled[hID::ESP])
 				std::cout << "ESP enabled\n";
 			else
-				std::cout << "ESP disabled\n";
+				std::cout << "ESP disabled\n";*/
+			PrintMenu();
 		}
 		if (enabled[hID::ESP])
 		{
@@ -128,11 +135,12 @@ void Multihack::Bhop()
 			enabled[hID::BHOP] = !enabled[hID::BHOP];
 			if (enabled[hID::BHOP])
 			{
-				std::cout << "Bhop enabled\n";
+				//std::cout << "Bhop enabled\n";
 				firstLaunch = true;
 			}
-			else
-				std::cout << "Bhop disabled\n";
+			/*else
+				std::cout << "Bhop disabled\n";*/
+			PrintMenu();
 		}
 		if (enabled[hID::BHOP])
 		{
@@ -168,10 +176,11 @@ void Multihack::RadarHack()
 		if (GetAsyncKeyState((int)hKeys::RADAR_HACK) & 1)
 		{
 			enabled[hID::RADAR_HACK] = !enabled[hID::RADAR_HACK];
-			if (enabled[hID::RADAR_HACK])
+			/*if (enabled[hID::RADAR_HACK])
 				std::cout << "Radar hack enabled\n";
 			else
-				std::cout << "Radar hack disabled\n";
+				std::cout << "Radar hack disabled\n";*/
+			PrintMenu();
 		}
 		if (enabled[hID::RADAR_HACK])
 		{
@@ -202,7 +211,7 @@ void Multihack::AimBot()
 			enabled[hID::AIMBOT] = !enabled[hID::AIMBOT];
 			if (enabled[hID::AIMBOT])
 			{
-				std::cout << "Aimbot enabled\n";
+				//std::cout << "Aimbot enabled\n";
 				first = true;
 				findClosest = std::thread(([this, &enemyToAim]()
 				{
@@ -215,11 +224,12 @@ void Multihack::AimBot()
 			}
 			else
 			{
-				std::cout << "Aimbot disabled\n";
+				//std::cout << "Aimbot disabled\n";
 				enemyToAim = 0;
 				findClosest.join();
 				//findClosest.~thread();
 			}
+			PrintMenu();
 		}
 		if (enabled[hID::AIMBOT])
 		{
@@ -279,17 +289,18 @@ void Multihack::TriggerBot()
 			enabled[hID::TRIGGER] = !enabled[hID::TRIGGER];
 			if (enabled[hID::TRIGGER])
 			{
-				std::cout << "Trigger bot enabled\n";
+				//std::cout << "Trigger bot enabled\n";
 				if (enabled[hID::RECOIL])
 					wasEnabled = true;
 				enabled[hID::RECOIL] = true;
 			}
 			else
 			{
-				std::cout << "Trigger bot disabled\n";
+				//std::cout << "Trigger bot disabled\n";
 				if (!wasEnabled)
 					enabled[hID::RECOIL] = false;
 			}
+			PrintMenu();
 		}
 		if (enabled[hID::TRIGGER])
 		{
@@ -351,13 +362,14 @@ void Multihack::AntiFlash()
 			if (enabled[hID::FLASH])
 			{
 				process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 60);
-				std::cout << "Antiflash enabled\n";
+				//std::cout << "Antiflash enabled\n";
 			}
 			else
 			{
 				process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 255);
-				std::cout << "Antiflash disabled\n";
+				//std::cout << "Antiflash disabled\n";
 			}
+			PrintMenu();
 		}
 		Sleep(10);
 	}
@@ -374,10 +386,11 @@ void Multihack::RecoilControl()
 		if (GetAsyncKeyState((int)hKeys::RECOIL) & 1)
 		{
 			enabled[hID::RECOIL] = !enabled[hID::RECOIL];
-			if (enabled[hID::RECOIL])
+			/*if (enabled[hID::RECOIL])
 				std::cout << "Recoil control enabled\n";
 			else
-				std::cout << "Recoil control disabled\n";
+				std::cout << "Recoil control disabled\n";*/
+			PrintMenu();
 		}
 		if (enabled[hID::RECOIL])
 		{
@@ -643,3 +656,79 @@ int Multihack::GetLocalIndex() const
 //	FillRect(csgoDC, &bar, brush);
 //	DeleteObject(brush);
 //}
+
+void Multihack::PrintMenu() const
+{
+	using std::cout;
+	using std::endl;
+	using std::setw;
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
+	//SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
+	system("cls");
+	cout << "-------------- Menu --------------" << endl <<
+		std::setiosflags(std::ios::left) << "HotKey | " << setw(15) << "Cheat" << '|' << " State" << endl <<
+		"----------------------------------" << endl;
+	for (int i = 0; i < cNums; ++i)
+		PrintCheatInfo(i);
+}
+
+#include <string>
+void Multihack::PrintCheatInfo(int ind) const
+{
+	using std::cout;
+	using std::endl;
+	using std::setw;
+
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	int color;
+	
+	std::string ability;
+	if (enabled[ind])
+	{
+		color = (int)Color::GREEN;
+		ability = "enabled";
+	}
+	else
+	{
+		color = (int)Color::RED;
+		ability = "disabled";
+	}
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | color));
+
+	std::string cheatName;
+	switch (ind)
+	{
+	case hID::ESP:
+		cheatName = "ESP";
+		break;
+	case hID::BHOP:
+		cheatName = "Bunny hop";
+		break;
+	case hID::RADAR_HACK:
+		cheatName = "Radar hack";
+		break;
+	case hID::RECOIL:
+		cheatName = "Recoil control";
+		break;
+	case hID::FLASH:
+		cheatName = "Anti-Flash";
+		break;
+	case hID::TRIGGER:
+		cheatName = "Trigger bot";
+		break;
+	case hID::AIMBOT:
+		cheatName = "Aim bot";
+		break;
+	}
+
+	cout << std::setiosflags(std::ios::left) << "NUM " << setw(3) << ind + 1;
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
+	cout << "| ";
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | color));
+	cout << setw(15) << cheatName;
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
+	cout << "| ";
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | color));
+	cout << ability << endl;
+	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
+}

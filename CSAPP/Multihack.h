@@ -9,6 +9,7 @@ class Multihack
 public:
 	Multihack();
 	~Multihack();
+	bool Cheatable() const;
 private:
 	ProcessHandler process;
 	uintptr_t moduleBase;
@@ -42,4 +43,7 @@ private:
 	Vector3 getEntHead(uintptr_t) const;
 	int GetLocalIndex() const;
 	bool SpottedByMe(uintptr_t) const;
+
+	void PrintMenu() const;
+	void PrintCheatInfo(int) const;
 };

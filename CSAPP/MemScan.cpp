@@ -27,12 +27,12 @@ ProcessHandler::ProcessHandler(const char* procName)
 			}
 		}
 		CloseHandle(hSnap);
-		std::cout << "Can't find the process in a snapshot!\n";
-		//throw std::runtime_error("Can't find the process in a snapshot!\n");
+		//std::cout << "Can't find the process in a snapshot!\n";
+		throw std::runtime_error("Can't find the process in a snapshot!\n");
 	}
 	else
-		std::cout << "Can't take processes' snapshot!\n";
-		//throw std::runtime_error("Can't take processes' snapshot!\n");
+		//std::cout << "Can't take processes' snapshot!\n";
+		throw std::runtime_error("Can't take processes' snapshot!\n");
 }
 
 uintptr_t ProcessHandler::GetModule(const char* modName) const
