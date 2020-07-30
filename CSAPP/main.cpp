@@ -1,6 +1,5 @@
 #include "Multihack.h"
 #include <iostream>
-using namespace std;
 
 int main()
 {
@@ -17,10 +16,10 @@ int main()
 			Multihack mh;
 			break;
 		}
-		catch (runtime_error)
+		catch (std::runtime_error)
 		{
 			system("cls");
-			cout << "Run CS:GO application!" << endl;
+			std::cout << "Run CS:GO application!\n";
 		}
 		Sleep(5000);
 	}

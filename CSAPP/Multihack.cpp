@@ -1,7 +1,7 @@
 #include "Multihack.h"
 #include <iostream>
 #include <string>
-#include "csgo.hpp"
+#include "Resources/csgo.hpp"
 #include <iomanip>
 
 using namespace hazedumper;
@@ -32,6 +32,10 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 		}
 		Sleep(2000);
 	}
+
+	//updating offsets
+	ShellExecuteA(NULL, "open", "C:\\Maxim\\Repositories\\CSAPP\\CSAPP\\Debug\\Resources\\hazedumper-v2.4.1.exe", NULL, "C:\\Maxim\\Repositories\\CSAPP\\CSAPP\\Debug\\Resources", SW_HIDE);
+
 	std::thread updater([this]()
 	{
 		// updating client.dll file (in case game changes)

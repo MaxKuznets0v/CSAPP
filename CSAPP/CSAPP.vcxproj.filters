@@ -29,16 +29,13 @@
     <ClInclude Include="MemScan.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Offets.h">
-      <Filter>Файлы ресурсов</Filter>
-    </ClInclude>
     <ClInclude Include="Multihack.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="config.h">
       <Filter>Файлы ресурсов</Filter>
     </ClInclude>
-    <ClInclude Include="csgo.hpp">
+    <ClInclude Include="Debug\Resources\csgo.hpp">
       <Filter>Файлы ресурсов</Filter>
     </ClInclude>
   </ItemGroup>
