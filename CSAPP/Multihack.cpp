@@ -57,6 +57,7 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 
 bool Multihack::Cheatable() const
 {
+	// checks whether game is launched
 	if (!process.GetProcID())
 		return false;
 	return true;
@@ -89,10 +90,6 @@ void Multihack::ESP()
 		{
 			enabled[hID::ESP] = !enabled[hID::ESP];
 			std::cout << '\a';
-			/*if (enabled[hID::ESP])
-				std::cout << "ESP enabled\n";
-			else
-				std::cout << "ESP disabled\n";*/
 			PrintMenu();
 		}
 		if (enabled[hID::ESP])
@@ -140,7 +137,6 @@ void Multihack::ESP()
 					}
 
 					glowStat.alpha = 0.8;
-					//glowStat.glowStyle = 1;
 					glowStat.renderOccluded = true;
 					glowStat.renderNonOccluded = false;
 					process.ProcWrite<Glow>(glowManager + (glowIndex * 0x38), glowStat);
@@ -165,12 +161,7 @@ void Multihack::Bhop()
 			enabled[hID::BHOP] = !enabled[hID::BHOP];
 			std::cout << '\a';
 			if (enabled[hID::BHOP])
-			{
-				//std::cout << "Bhop enabled\n";
 				firstLaunch = true;
-			}
-			/*else
-				std::cout << "Bhop disabled\n";*/
 			PrintMenu();
 		}
 		if (enabled[hID::BHOP])
@@ -209,10 +200,6 @@ void Multihack::RadarHack()
 		{
 			enabled[hID::RADAR_HACK] = !enabled[hID::RADAR_HACK];
 			std::cout << '\a';
-			/*if (enabled[hID::RADAR_HACK])
-				std::cout << "Radar hack enabled\n";
-			else
-				std::cout << "Radar hack disabled\n";*/
 			PrintMenu();
 		}
 		if (enabled[hID::RADAR_HACK])
@@ -246,7 +233,6 @@ void Multihack::AimBot()
 			std::cout << '\a';
 			if (enabled[hID::AIMBOT])
 			{
-				//std::cout << "Aimbot enabled\n";
 				first = true;
 				findClosest = std::thread(([this, &enemyToAim]()
 				{
@@ -259,10 +245,8 @@ void Multihack::AimBot()
 			}
 			else
 			{
-				//std::cout << "Aimbot disabled\n";
 				enemyToAim = 0;
 				findClosest.join();
-				//findClosest.~thread();
 			}
 			PrintMenu();
 		}
@@ -317,7 +301,6 @@ void Multihack::TriggerBot()
 {
 	if (!terminate)
 		ClientUpdate();
-	int checkTime = 10;
 	bool wasEnabled = false;
 
 	while (active)
@@ -328,14 +311,13 @@ void Multihack::TriggerBot()
 			std::cout << '\a';
 			if (enabled[hID::TRIGGER])
 			{
-				//std::cout << "Trigger bot enabled\n";
+				checkTime = 10;
 				if (enabled[hID::RECOIL])
 					wasEnabled = true;
 				enabled[hID::RECOIL] = true;
 			}
 			else
 			{
-				//std::cout << "Trigger bot disabled\n";
 				if (!wasEnabled)
 					enabled[hID::RECOIL] = false;
 				wasEnabled = false;
@@ -378,9 +360,15 @@ void Multihack::TriggerBot()
 
 		// changing hack delay
 		if (GetAsyncKeyState(VK_DOWN) & 1 && checkTime > 5)
+		{
 			checkTime -= 5;
+			PrintMenu();
+		}
 		if (GetAsyncKeyState(VK_UP) & 1)
+		{
 			checkTime += 5;
+			PrintMenu();
+		}
 
 		Sleep(checkTime);
 	}
@@ -390,6 +378,7 @@ void Multihack::AntiFlash()
 {
 	if (!terminate)
 		ClientUpdate();
+
 	// making sure that antiflash disabled
 	uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 	process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 255);
@@ -402,15 +391,9 @@ void Multihack::AntiFlash()
 
 			std::cout << '\a';
 			if (enabled[hID::FLASH])
-			{
 				process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 60);
-				//std::cout << "Antiflash enabled\n";
-			}
 			else
-			{
 				process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 255);
-				//std::cout << "Antiflash disabled\n";
-			}
 			PrintMenu();
 		}
 		Sleep(10);
@@ -430,10 +413,6 @@ void Multihack::RecoilControl()
 		{
 			enabled[hID::RECOIL] = !enabled[hID::RECOIL];
 			std::cout << '\a';
-			/*if (enabled[hID::RECOIL])
-				std::cout << "Recoil control enabled\n";
-			else
-				std::cout << "Recoil control disabled\n";*/
 			PrintMenu();
 		}
 		if (enabled[hID::RECOIL])
@@ -463,6 +442,7 @@ void Multihack::RecoilControl()
 
 int Multihack::WeaponID(uintptr_t player)
 {
+	// getting weapon id in player's hands
 	uintptr_t weaponAddress = process.ProcRead<uintptr_t>(player + m_hActiveWeapon) & 0xFFF;
 	int m_iBase = process.ProcRead<int>(moduleBase + dwEntityList + (weaponAddress - 1) * 0x10);
 	return process.ProcRead<int>(m_iBase + m_iItemDefinitionIndex);
@@ -470,8 +450,7 @@ int Multihack::WeaponID(uintptr_t player)
 
 void Multihack::DrawCrosshair(HDC& hDC, HBRUSH brush) const
 {
-	//GetSize();
-	//Rectangle(hDC, screenX / 2 - 4, screenY / 2 - 4, screenX / 2 + 4, screenY / 2 + 4);
+	// drawing square in the screen center
 	RECT crosshair{ screenX / 2 - 4,  screenY / 2 - 4, screenX / 2 + 4, screenY / 2 + 4 };
 	FillRect(hDC, &crosshair, brush);
 }
@@ -492,13 +471,9 @@ void Multihack::Crosshair()
 			{
 				brush = CreateSolidBrush(RGB(0, 255, 0));
 				csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
-				std::cout << "Auto crosshair enabled\n";
 			}
 			else
-			{
-				std::cout << "Auto crosshair disabled\n";
 				DeleteObject(brush);
-			}
 		}
 		if (enabled[hID::CROSSHAIR])
 		{
@@ -540,9 +515,7 @@ void Multihack::NormalizeAngles(Vector3& vec)
 uintptr_t Multihack::ClosestEnemy()
 {
 	if (screenX == screenY == -1)
-	{
 		return 0;
-	}
 	uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 	int team = process.ProcRead<int>(lPlayer + m_iTeamNum);
 	uintptr_t closest = 0;
@@ -585,20 +558,9 @@ Vector3 Multihack::getEntHead(uintptr_t entity) const
 	return { boneHead.x, boneHead.y, boneHead.z };
 }
 
-void Multihack::DrawLine(float StartX, float StartY, float EndX, float EndY){ //This function is optional for debugging.
-	int a, b = 0;
-	HPEN hOPen;
-	HWND hwnd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
-	HDC hdc = GetDC(hwnd);
-	HPEN hNPen = CreatePen(PS_SOLID, 2, 0x0000FF /*red*/);
-	hOPen = (HPEN)SelectObject(hdc, hNPen);
-	MoveToEx(hdc, StartX, StartY, NULL); //start of line
-	a = LineTo(hdc, EndX, EndY); //end of line
-	DeleteObject(SelectObject(hdc, hOPen));
-}
-
 Vector3 Multihack::getAngles(Vector3 cur, Vector3 dest) const
 {
+	// getting angles for aimbot
 	Vector3 angles;
 	angles.z = 0;
 
@@ -627,6 +589,7 @@ void Multihack::ClientUpdate()
 
 void Multihack::Options()
 {
+	// handling all the cheat threads
 	LaunchThreads();
 	while (!terminate)
 	{
@@ -634,15 +597,9 @@ void Multihack::Options()
 		{
 			active = !active;
 			if (active)
-			{
-				//std::cout << "Multihack enabled\n";
 				LaunchThreads();
-			}
 			else
-			{
-				//std::cout << "Multihack disabled\n";
 				StopAll();
-			}
 			PrintMenu();
 			std::cout << '\a';
 		}
@@ -677,29 +634,6 @@ int Multihack::GetLocalIndex() const
 	uintptr_t clientState = process.ProcRead<uintptr_t>(engine + dwClientState);
 	return process.ProcRead<int>(clientState + dwClientState_GetLocalPlayer);
 }
-
-//void Multihack::HealthBar(uintptr_t entity, float health)
-//{
-//	// getting veiw matrix for view transformation
-//	view_matrix_t veiwMat = process.ProcRead<view_matrix_t>(moduleBase + offsets::esp::dwViewMatrix);
-//	// getting player position
-//	Vector3 pos = process.ProcRead<Vector3>(entity + offsets::esp::m_vecOrigin);
-//	Vector3 head{ pos.x, pos.y, pos.z + 75.f };
-//	// transforming 3D global coordinates into 2D screen coordinates
-//	Vector3 screenpos = WorldToScreen(pos, veiwMat);
-//	Vector3 screenhead = WorldToScreen(head, veiwMat);
-//	float height = screenhead.y - screenpos.y;
-//	float width = height / 2.4f;;
-//	RECT bar{ screenhead.x - width / 2 - 10, screenhead.y, screenpos.x - width / 2 - 5, screenpos.y };
-//	DrawBar(bar, health);
-//}
-//
-//void Multihack::DrawBar(RECT bar, float health)
-//{
-//	HBRUSH brush = CreateSolidBrush(RGB(255, 0, 0));
-//	FillRect(csgoDC, &bar, brush);
-//	DeleteObject(brush);
-//}
 
 void Multihack::PrintMenu()
 {
@@ -743,6 +677,7 @@ void Multihack::PrintMenu()
 
 void Multihack::PrintCheatInfo(int ind) const
 {
+	// Printing cheat info into console 
 	using std::cout;
 	using std::endl;
 	using std::setw;
@@ -797,6 +732,9 @@ void Multihack::PrintCheatInfo(int ind) const
 	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
 	cout << "| ";
 	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | color));
-	cout << ability << endl;
+	if (ind != hID::TRIGGER || (ind == hID::TRIGGER && !enabled[ind]))
+		cout << ability << endl;
+	else
+		cout << ability << " " << checkTime << " ms" << endl;
 	SetConsoleTextAttribute(hConsole, (WORD)((0 << 4) | (int)Color::WHITE));
 }

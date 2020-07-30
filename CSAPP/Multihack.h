@@ -16,16 +16,14 @@ private:
 	uintptr_t moduleBase;
 	std::mutex printLock;
 	bool terminate;
-	//HDC csgoDC;
-	// multicheat activity
 	bool active;
 	// cheats availability
 	bool enabled[cNums];
 	std::thread cheatTreads[cNums];
+	int checkTime;
+
+	// cheats
 	void ESP();
-	// not used in this hack
-	/*void HealthBar(uintptr_t, float);
-	void DrawBar(RECT, float);*/
 	void Bhop();
 	void RadarHack();
 	void AimBot();
@@ -33,6 +31,8 @@ private:
 	void RecoilControl();
 	void AntiFlash();
 	void Crosshair();
+
+	// methods used in cheats
 	int WeaponID(uintptr_t);
 	void DrawCrosshair(HDC&, HBRUSH) const;
 	void NormalizeAngles(Vector3&);
@@ -42,11 +42,11 @@ private:
 	void Options();
 	void StopAll();
 	void LaunchThreads();
-	void DrawLine(float StartX, float StartY, float EndX, float End);
 	Vector3 getEntHead(uintptr_t) const;
 	int GetLocalIndex() const;
 	bool SpottedByMe(uintptr_t) const;
 
+	// Printing menu stuff
 	void PrintMenu();
 	void PrintCheatInfo(int) const;
 };
