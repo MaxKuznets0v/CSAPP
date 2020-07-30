@@ -642,6 +642,7 @@ void Multihack::PrintMenu()
 	using std::setw;
 
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
+
 	std::string stat;
 	int color;
 	if (active)
