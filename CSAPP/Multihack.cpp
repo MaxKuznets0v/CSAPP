@@ -34,7 +34,7 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 	}
 
 	//updating offsets
-	ShellExecuteA(NULL, "open", "C:\\Maxim\\Repositories\\CSAPP\\CSAPP\\Debug\\Resources\\hazedumper-v2.4.1.exe", NULL, "C:\\Maxim\\Repositories\\CSAPP\\CSAPP\\Debug\\Resources", SW_HIDE);
+	ShellExecuteA(NULL, "open", "hazedumper-v2.4.1.exe", NULL, "Resources", SW_HIDE);
 
 	std::thread updater([this]()
 	{
