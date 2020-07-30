@@ -14,20 +14,45 @@ Multihack::Multihack() : process(ProcessHandler("csgo.exe"))
 		throw std::runtime_error("Run CS:GO first!");
 
 	active = true;
+	terminate = false;
 	GetSize();
-	//HDC csgoDC = GetDC(FindWindowA(NULL, "Counter-Strike: Global Offensive"));
+
+	// first loop needed for first launch
+	while (true)
+	{
+		try
+		{
+			ClientUpdate();
+			break;
+		}
+		catch (std::runtime_error)
+		{
+			system("cls");
+			std::cout << "Connecting to CS:GO game modules\n";
+		}
+		Sleep(2000);
+	}
 	std::thread updater([this]()
 	{
 		// updating client.dll file (in case game changes)
-		while (true)
+		while (!terminate)
 		{
-			ClientUpdate();
-			Sleep(2000);
+			try
+			{
+				ClientUpdate();
+				Sleep(2000);
+			}
+			catch (std::runtime_error)
+			{
+				terminate = true;
+			}
 		}
 	});
-	updater.detach();
+	
 	PrintMenu();
 	Options();
+	if (updater.joinable())
+		updater.join();
 }
 
 bool Multihack::Cheatable() const
@@ -56,7 +81,8 @@ void Multihack::StopAll()
 
 void Multihack::ESP()
 {
-	ClientUpdate();
+	if (!terminate)
+		ClientUpdate();
 	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::ESP) & 1)
@@ -129,7 +155,8 @@ void Multihack::Bhop()
 {
 	// needed to prevent a jump when hotkey is pressed
 	bool firstLaunch = true; 
-	ClientUpdate();
+	if (!terminate)
+		ClientUpdate();
 
 	while (active)
 	{
@@ -174,7 +201,8 @@ void Multihack::Bhop()
 
 void Multihack::RadarHack()
 {
-	ClientUpdate();
+	if (!terminate)
+		ClientUpdate();
 	while (active)
 	{
 		if (GetAsyncKeyState((int)hKeys::RADAR_HACK) & 1)
@@ -203,7 +231,8 @@ void Multihack::RadarHack()
 
 void Multihack::AimBot()
 {
-	ClientUpdate();
+	if (!terminate)
+		ClientUpdate();
 	std::thread findClosest;
 	uintptr_t enemyToAim = 0;
 	// flag that prevensts false activation
@@ -286,7 +315,8 @@ void Multihack::AimBot()
 
 void Multihack::TriggerBot()
 {
-	ClientUpdate();
+	if (!terminate)
+		ClientUpdate();
 	int checkTime = 10;
 	bool wasEnabled = false;
 
@@ -358,7 +388,8 @@ void Multihack::TriggerBot()
 
 void Multihack::AntiFlash()
 {
-	ClientUpdate();
+	if (!terminate)
+		ClientUpdate();
 	// making sure that antiflash disabled
 	uintptr_t lPlayer = process.ProcRead<uintptr_t>(moduleBase + dwLocalPlayer);
 	process.ProcWrite<float>(lPlayer + m_flFlashMaxAlpha, 255);
@@ -388,7 +419,8 @@ void Multihack::AntiFlash()
 
 void Multihack::RecoilControl()
 {
-	ClientUpdate(); 
+	if (!terminate)
+		ClientUpdate();
 	uintptr_t engine = process.GetModule("engine.dll");
 	Vector3 prevPunch{ 0, 0, 0 };
 
@@ -596,8 +628,7 @@ void Multihack::ClientUpdate()
 void Multihack::Options()
 {
 	LaunchThreads();
-
-	while (true)
+	while (!terminate)
 	{
 		if (GetAsyncKeyState(VK_END) & 1)
 		{
@@ -615,7 +646,6 @@ void Multihack::Options()
 			PrintMenu();
 			std::cout << '\a';
 		}
-			
 		Sleep(1000);
 	}
 }

@@ -55,14 +55,14 @@ uintptr_t ProcessHandler::GetModule(const char* modName) const
 				return (uintptr_t)modEntry.modBaseAddr;
 			}
 		}
-		std::cout << "Can't find the module in a snapshot!\n";
 		CloseHandle(hSnap);
-		return uintptr_t();
+		throw std::runtime_error("Can't find the module in a snapshot!");
+		//return uintptr_t();
 	}
 	else
 	{
-		std::cout << "Can't take modules' snapshot!\n";
-		return uintptr_t();
+		throw std::runtime_error("Can't take modules' snapshot!");
+		//return uintptr_t();
 	}
 }
 

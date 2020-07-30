@@ -15,6 +15,7 @@ private:
 	ProcessHandler process;
 	uintptr_t moduleBase;
 	std::mutex printLock;
+	bool terminate;
 	//HDC csgoDC;
 	// multicheat activity
 	bool active;
